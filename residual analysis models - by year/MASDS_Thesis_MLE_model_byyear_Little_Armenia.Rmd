@@ -1,0 +1,1234 @@
+---
+title: "MASDS Thesis"
+author: "Lauren Huang"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+library(utils)
+library(dplyr)
+library(purrr)
+library(fs)
+library(stringr)
+library(ggplot2)
+library(sf)
+library(tmap)
+library(cartogram)
+library(stelfi)
+library(lubridate)
+library(hawkes)
+library(MASS)
+library(fitdistrplus)
+library(PtProcess)
+library(stats)
+library(foreach)
+library(sn)
+library(geosphere)
+library(spData)
+library(sf)
+library(tidyr)
+library(geodist)
+library(vegan)
+library(ade4)
+library(scales)
+library(patchwork)
+library(parallel)
+library(reshape2)
+```
+
+# Read in the Data
+
+```{r}
+# parent directory containing relevant folders
+parent_dir <- "C:/Users/cupca/Desktop/UCLA/Thesis"
+
+# all folders within the parent directory
+folder_list <- dir_ls(path = parent_dir, type = "dir")
+
+# folders within the parent directory
+folders <- c("2020", "2021", "2022", "2023")
+
+# construct full paths to the specified directories
+full_paths <- file.path(parent_dir, folders)
+
+# a function to read and standardize columns of each csv file
+read_and_standardize <- function(file) {
+  df <- read.csv(file)
+  # convert certain columns to the same format
+  columns_to_convert <- c("Cases", "Case.Rate")
+  # replace occurrences of -- with 0
+  value_to_replace <- "--"
+  # convert occurrences of the specific character value in the specified columns to integer 0
+  df <- df %>%
+  mutate(across(all_of(columns_to_convert), 
+                 ~ ifelse(. == value_to_replace, 0, .))) %>%
+  mutate(across(all_of(columns_to_convert), 
+                 ~ as.numeric(as.character(.))))
+  
+  # standardize columns: add NA/missing columns if they do not exist
+  if (!("Deaths" %in% names(df))) {
+    df$Deaths <- NA
+  }
+  if (!("Death.Rate" %in% names(df))) {
+    df$Death.Rate <- NA
+  }
+  return(df)
+}
+
+# read, combine all csv files from all folders
+all_covid_data <- full_paths %>%
+  # list all csv files in the folder
+  map(~ dir_ls(path = .x, regexp = "\\.csv$", type = "file")) %>%
+  # flatten list of file paths
+  unlist() %>%
+  # read, standardize each csv file
+  map_df(read_and_standardize, .id = "source_id")
+
+# save combined files to a new csv file
+write.csv(all_covid_data, "all_covid_data.csv", row.names = FALSE)
+```
+
+## Data Cleaning
+
+```{r}
+# define a function that relabels source_id as Year
+replace_if_contains <- function(df, substring_to_find, new_value) {
+  # replace values containing the substring in the specified column (source_id)
+  df <- df %>%
+    mutate(source_id = ifelse(str_detect(source_id, substring_to_find), new_value, source_id))
+  return(df)
+}
+
+all_covid_data <- replace_if_contains(df=all_covid_data, substring_to_find="2020", new_value="2020")
+all_covid_data <- replace_if_contains(df=all_covid_data, substring_to_find="2021", new_value="2021")
+all_covid_data <- replace_if_contains(df=all_covid_data, substring_to_find="2022", new_value="2022")
+all_covid_data <- replace_if_contains(df=all_covid_data, substring_to_find="2023", new_value="2023")
+
+# rename column as Year
+names(all_covid_data)[names(all_covid_data) == 'source_id'] <- 'year'
+
+# Date Preprocessing
+
+# extract month
+all_covid_data$month <- substr(all_covid_data$date, nchar(all_covid_data$date) - 3, nchar(all_covid_data$date) - 2)
+
+# extract day
+all_covid_data$day <- substr(all_covid_data$date, nchar(all_covid_data$date) - 1, nchar(all_covid_data$date))
+
+# create a column containing the full date (month, day, year)
+all_covid_data$date <- as.Date(paste(all_covid_data$month, all_covid_data$day, all_covid_data$year), "%m%d%Y")
+
+# drop individual month, day, year columns we no longer need
+all_covid_data <- subset(all_covid_data, select = -c(year, month, day))
+
+# create new column called incidence, counting new deaths per day in each community
+all_covid_data <- all_covid_data %>%
+  arrange(name, date) %>%
+  group_by(name) %>%
+  mutate(incidence = Deaths - lag(Deaths, default = 0)) %>%
+  ungroup()
+
+# replace negative or NA values in the incidence column with 0
+all_covid_data <- all_covid_data %>%
+  mutate(incidence = ifelse(is.na(incidence) | incidence < 0, 0, incidence))
+
+# replace NA values with 0
+all_covid_data <- all_covid_data %>%
+  mutate(Deaths = ifelse(is.na(Deaths), 0, Deaths))
+
+# convert the date column to Date type
+community_data <- all_covid_data %>%
+  mutate(date = as.Date(date)) %>%
+  filter(date > 0) %>%
+  filter(('2020-05-16' < date) & (date < '2023-01-02')) 
+# exclude date gap between 11/21/22-1/2/23 and 1/3/23-11/21/23
+
+# replace NA, 0 deaths with 0.5 or 1
+community_data <- community_data %>%
+  mutate(Deaths = ifelse(is.na(Deaths), 0.5, Deaths),
+         Deaths = ifelse(Deaths == 0, 0.5, Deaths))
+```
+
+## Daily death incidence
+
+```{r}
+# get little armenia data
+little_armenia <- community_data %>%
+  filter(name == "Los Angeles - Little Armenia")
+
+# split little armenia dates by year
+little_armenia_by_year <- little_armenia %>%
+  mutate(year = format(date, "%Y"))
+
+little_armenia_2020 <- filter(little_armenia_by_year, year == "2020")
+little_armenia_2021 <- filter(little_armenia_by_year, year == "2021")
+little_armenia_2022 <- filter(little_armenia_by_year, year == "2022")
+
+# convert dates to numeric time (days since the start of the data)
+start_date_2020 <- min(little_armenia_2020$date, na.rm = TRUE)
+little_armenia_2020 <- little_armenia_2020 %>% mutate(time = as.numeric(difftime(date, start_date_2020, units = "days")))
+
+start_date_2021 <- min(little_armenia_2021$date, na.rm = TRUE)
+little_armenia_2021 <- little_armenia_2021 %>% mutate(time = as.numeric(difftime(date, start_date_2021, units = "days")))
+
+start_date_2022 <- min(little_armenia_2022$date, na.rm = TRUE)
+little_armenia_2022 <- little_armenia_2022 %>% mutate(time = as.numeric(difftime(date, start_date_2022, units = "days")))
+
+# cannot be simultaneous events, need to transform event times
+generate_event_times <- function(time, deaths) {
+  if (deaths > 0) {
+    # distribute event times uniformly within the same day
+    return(time + runif(deaths, min = 0, max = 1))  # random times
+  } else {
+    return(NULL)  # no deaths on this day
+  }
+}
+
+# generate event times for 2020
+event_times_little_armenia_2020 <- little_armenia_2020 %>%
+  group_by(name) %>%
+  summarise(event_times = list(unlist(mapply(generate_event_times, time, incidence))))
+
+event_times_little_armenia_2020 <- event_times_little_armenia_2020 %>% pull(event_times)
+event_times_little_armenia_2020 <- sort(unlist(event_times_little_armenia_2020))
+event_times_little_armenia_2020_unique <- unique(event_times_little_armenia_2020)
+adj_event_times_little_armenia_2020 <- event_times_little_armenia_2020_unique + 
+  seq(0, length(event_times_little_armenia_2020_unique) - 1) * 1e-5
+
+# generate event times for 2021
+event_times_little_armenia_2021 <- little_armenia_2021 %>%
+  group_by(name) %>%
+  summarise(event_times = list(unlist(mapply(generate_event_times, time, incidence))))
+
+event_times_little_armenia_2021 <- event_times_little_armenia_2021 %>% pull(event_times)
+event_times_little_armenia_2021 <- sort(unlist(event_times_little_armenia_2021))
+event_times_little_armenia_2021_unique <- unique(event_times_little_armenia_2021)
+adj_event_times_little_armenia_2021 <- event_times_little_armenia_2021_unique + 
+  seq(0, length(event_times_little_armenia_2021_unique) - 1) * 1e-5
+
+# generate event times for 2022
+event_times_little_armenia_2022 <- little_armenia_2022 %>%
+  group_by(name) %>%
+  summarise(event_times = list(unlist(mapply(generate_event_times, time, incidence))))
+
+event_times_little_armenia_2022 <- event_times_little_armenia_2022 %>% pull(event_times)
+event_times_little_armenia_2022 <- sort(unlist(event_times_little_armenia_2022))
+event_times_little_armenia_2022_unique <- unique(event_times_little_armenia_2022)
+adj_event_times_little_armenia_2022 <- event_times_little_armenia_2022_unique + 
+  seq(0, length(event_times_little_armenia_2022_unique) - 1) * 1e-5
+```
+
+
+# Hawkes Modeling and Analysis
+
+## Adding age covariate using a custom intensity function
+
+```{r}
+# age distribution data: yrs 0-9, 10-19, 20-29,...70-79, 80+
+age_labels <- c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80+")
+
+# little armenia
+age_data_la <- c(2790, 2835, 3510, 3600, 2700, 1980, 1530, 1215, 720) # city data
+
+# function to include age covariate in estimation
+get_age_distribution <- function(community_name) {
+    if (community_name == "Little_Armenia") {
+        return(age_data_la)
+    } else {
+        stop("Unknown community")
+    }
+}
+```
+
+
+### MLE (with Age covariate), 6 Excitation, 3 Decay parameters DAILY
+
+#### uses all past data
+
+```{r}
+years <- c(2020, 2021, 2022)
+event_times_list <- list(
+  "2020" = adj_event_times_little_armenia_2020,
+  "2021" = adj_event_times_little_armenia_2021,
+  "2022" = adj_event_times_little_armenia_2022
+)
+
+age_dist_la <- age_data_la[-9] / sum(age_data_la[-9])
+```
+
+```{r}
+# intensity function
+custom_intensity_mle_age <- function(params, t, event_times, age_distribution) {
+  mu <- max(params[1] + sum(params[2:9] * age_distribution), 1e-5)
+  alpha <- params[10:15]
+  beta <- params[16:18]
+
+  excitation <- sapply(t, function(time) {
+    prev_events <- event_times[event_times < time]
+    if (length(prev_events) == 0) return(0)
+
+    t_diff <- time - prev_events
+    event_group <- (seq_along(prev_events) %% 6) + 1
+    time_group <- findInterval(t_diff, quantile(t_diff, c(0.33, 0.66))) + 1
+
+    sum(alpha[event_group] * exp(-beta[time_group] * t_diff))
+  })
+
+  mu + excitation
+}
+
+# log-likelihood function
+log_likelihood <- function(params, event_times, age_distribution) {
+  log_lik <- 0
+  for (i in seq_along(event_times)) {
+    t <- event_times[i]
+    lambda_t <- custom_intensity_mle_age(params, t, event_times[1:(i-1)], age_distribution)
+
+    if (lambda_t <= 0 || !is.finite(lambda_t)) return(1e10)
+    log_lik <- log_lik + log(lambda_t)
+
+    integral <- tryCatch({
+      integrate(
+        custom_intensity_mle_age,
+        lower = ifelse(i == 1, 0, event_times[i-1]),
+        upper = t,
+        params = params,
+        event_times = event_times[1:(i-1)],
+        age_distribution = age_distribution,
+        subdivisions = 100,
+        rel.tol = 1e-4
+      )$value
+    }, error = function(e) {
+      warning("Integration failed at event ", i, ": ", e$message)
+      return(1e10)
+    })
+
+    log_lik <- log_lik - integral
+  }
+  return(-log_lik)
+}
+ 
+# saves results to txt file
+save_little_armenia_results <- function(results, community, filename = "result_community_mle_6_3_age_daily.txt") {
+  sink(filename, append = file.exists(filename))
+
+  cat("=== COMMUNITY:", community, "===\n")
+  cat("TIMESTAMP:", format(Sys.time()), "\n")
+
+  # parameter estimates
+  cat("\n[PARAMETERS]\n")
+  cat("BASELINE:", results$baseline, "\n")
+  cat("AGE_COEFFS:", paste(round(results$age_coefficients, 6), collapse = " "), "\n")
+  cat("EXCITATION_PARAMS:", paste(round(results$excitation_params, 6), collapse = " "), "\n")
+  cat("DECAY_PARAMS:", paste(round(results$decay_params, 6), collapse = " "), "\n")
+
+  # model diagnostics
+  cat("\n[DIAGNOSTICS]\n")
+  cat("LOGLIK:", results$loglik, "\n")
+  cat("CONVERGENCE:", results$convergence, "\n")
+  cat("N_EVENTS:", results$n_events, "\n")
+  cat("FUNCTION_EVALS:", results$counts[1], "\n")
+
+  cat("\n---END---\n\n")
+  sink()
+}
+
+# initial parameters
+initial_params <- c(
+  0.1,              # baseline
+  rep(0.01, 8),     # age coefficients
+  rep(0.1, 6),      # 6 excitation parameters
+  c(0.5, 0.2, 0.1)  # 3 decay parameters
+)
+
+# create fresh results file
+if (file.exists("result_little_armenia_old.txt")) file.remove("result_little_armenia_old.txt")
+
+# loops through years and estimates parameters
+for (year in years) {
+  cat("\n=== Processing Little Armenia", year, "===\n")
+
+  # prepare community data
+  event_times_year <- event_times_list[[as.character(year)]]
+
+  # optimization
+  fit <- optim(
+    par = initial_params,
+    fn = log_likelihood,
+    event_times = event_times_year,
+    age_distribution = age_dist_la,
+    method = "L-BFGS-B",
+    lower = c(rep(0, 9), rep(0, 6), rep(0.01, 3)),
+    upper = c(rep(Inf, 9), rep(10, 6), rep(10, 3)),
+    control = list(trace = 1, maxit = 300)
+  )
+
+  # prepare results
+  mle_age_results_daily <- list(
+    baseline = fit$par[1],
+    age_coefficients = fit$par[2:9],
+    excitation_params = fit$par[10:15],
+    decay_params = fit$par[16:18],
+    loglik = -fit$value,
+    convergence = fit$convergence,
+    n_events = length(event_times_year),
+    counts = fit$counts
+  )
+
+  # save results
+  save_little_armenia_results(mle_age_results_daily, paste0("Little_Armenia_", year),
+                             filename = "result_little_armenia_old.txt")
+
+  # summary
+  cat("\nCompleted Little Armenia", year, "with convergence", fit$convergence, "\n")
+  cat("Log-likelihood:", -fit$value, "\n")
+}
+```
+
+```{r}
+# function to parse the results file and estimates
+read_little_armenia_results <- function(filename = "result_little_armenia_old.txt") {
+
+  file_content <- readLines(filename)
+
+  communities <- list()
+  current_community <- NULL
+
+  for (line in file_content) {
+
+    # new community
+    if (grepl("^=== COMMUNITY:", line)) {
+      current_community <- gsub("=== COMMUNITY: (.*?) ===", "\\1", line)
+      communities[[current_community]] <- list()
+      next
+    }
+
+    # skip empty lines and separators
+    if (grepl("^---END---|^$", line)) next
+
+    # extract baseline
+    if (grepl("^BASELINE:", line)) {
+      communities[[current_community]]$baseline <- as.numeric(gsub("BASELINE: (.*)", "\\1", line))
+    }
+
+    # extract age coefficients
+    if (grepl("^AGE_COEFFS:", line)) {
+      communities[[current_community]]$age_coefficients <-
+        as.numeric(strsplit(gsub("AGE_COEFFS: (.*)", "\\1", line), " ")[[1]])
+    }
+
+    # extract excitation parameters
+    if (grepl("^EXCITATION_PARAMS:", line)) {
+      communities[[current_community]]$excitation_params <-
+        as.numeric(strsplit(gsub("EXCITATION_PARAMS: (.*)", "\\1", line), " ")[[1]])
+    }
+
+    # extract decay parameters
+    if (grepl("^DECAY_PARAMS:", line)) {
+      communities[[current_community]]$decay_params <-
+        as.numeric(strsplit(gsub("DECAY_PARAMS: (.*)", "\\1", line), " ")[[1]])
+    }
+
+    # extract log-likelihood
+    if (grepl("^LOGLIK:", line)) {
+      communities[[current_community]]$loglik <- as.numeric(gsub("LOGLIK: (.*)", "\\1", line))
+    }
+  }
+  return(communities)
+}
+
+little_armenia_results <- read_little_armenia_results()
+
+community_names <- names(little_armenia_results)
+
+# create a data frame of all baselines
+baseline_df <- data.frame(
+  Community = community_names,
+  Baseline = sapply(little_armenia_results, function(x) x$baseline)
+)
+
+# create a matrix of all excitation parameters
+excitation_matrix <- t(sapply(little_armenia_results, function(x) x$excitation_params))
+colnames(excitation_matrix) <- paste0("Excitation_", 1:6)
+
+# combine all parameters into one data frame
+full_little_armenia_results <- do.call(rbind, lapply(names(little_armenia_results), function(comm) {
+  data.frame(
+    Community = comm,
+    Baseline = little_armenia_results[[comm]]$baseline,
+    Age_Coeffs = I(list(little_armenia_results[[comm]]$age_coefficients)),
+    Excitation = I(list(little_armenia_results[[comm]]$excitation_params)),
+    Decay = I(list(little_armenia_results[[comm]]$decay_params)),
+    LogLik = little_armenia_results[[comm]]$loglik
+  )
+}))
+
+print(baseline_df)
+print(excitation_matrix)
+head(full_little_armenia_results)
+```
+
+```{r}
+# list of all communities
+little_armenia_data <- list(
+  "Little_Armenia_2020" = list(
+    df = little_armenia_2020,
+    adj_times = adj_event_times_little_armenia_2020,
+    age_data = age_data_la
+  ),
+  "Little_Armenia_2021" = list(
+    df = little_armenia_2021,
+    adj_times = adj_event_times_little_armenia_2021,
+    age_data = age_data_la
+  ),
+  "Little_Armenia_2022" = list(
+    df = little_armenia_2022,
+    adj_times = adj_event_times_little_armenia_2022,
+    age_data = age_data_la
+  )
+)
+
+process_and_plot_all <- function(community_name, data, adj_event_times, estimates, age_data) {
+  event_times <- data$date
+  start_date <- min(event_times)
+  numeric_event_times <- as.numeric(difftime(event_times, start_date, units = "days"))
+  numeric_mapped_times <- as.numeric(difftime(start_date + adj_event_times, start_date, units = "days"))
+
+  # initialize expected deaths
+  expected_deaths <- numeric(length(numeric_event_times))
+  
+  # calculate expected deaths
+  for (i in seq_along(numeric_event_times)) {
+    t <- numeric_event_times[i]
+    
+    # get previous events
+    prev_events <- numeric_mapped_times[numeric_mapped_times < t]
+    
+    # if no previous events, use baseline
+    if (length(prev_events) == 0) {
+      expected_deaths[i] <- estimates[1]
+    } else {
+      expected_deaths[i] <- custom_intensity_mle_age(
+        params = estimates,
+        t = t,
+        event_times = prev_events,
+        age_distribution = age_data[-9]/sum(age_data[-9])
+      )
+    }
+  }
+  results_df <- data.frame(
+    date = event_times,
+    observed = data$incidence,
+    expected = expected_deaths
+  )
+
+  # plot
+  p <- ggplot(results_df, aes(x = date)) +
+    geom_line(aes(y = observed, color = "Observed"), linewidth = 1) +
+    geom_line(aes(y = expected, color = "Expected"), linewidth = 1) +
+    scale_color_manual(values = c("red", "black")) +
+    labs(title = paste("Expected vs Observed Deaths for", community_name),
+         x = "Date", y = "Daily Deaths", color = "Type") +
+    theme_minimal()
+
+  return(list(
+    data = results_df,
+    plot = p
+  ))
+}
+
+generate_all_plots <- function(results_list, year_data) {
+  all_plots <- list()
+
+  for (year_key in names(year_data)) {
+    if (!year_key %in% names(results_list)) {
+      warning("No results found for ", year_key, ", skipping...")
+      next
+    }
+    cat("Processing", year_key, "...\n")
+
+    all_plots[[year_key]] <- process_and_plot_all(
+      community_name = year_key,
+      data = year_data[[year_key]]$df,
+      adj_event_times = year_data[[year_key]]$adj_times,
+      estimates = c(
+        results_list[[year_key]]$baseline,
+        results_list[[year_key]]$age_coefficients,
+        results_list[[year_key]]$excitation_params,
+        results_list[[year_key]]$decay_params
+      ),
+      age_data = year_data[[year_key]]$age_data[-9]
+    )
+  }
+  return(all_plots)
+}
+
+little_armenia_results <- read_little_armenia_results("result_little_armenia_old.txt")
+
+# plot
+all_little_armenia_plots <- generate_all_plots(little_armenia_results, 
+                                                  little_armenia_data)
+
+# plot by year
+all_little_armenia_plots$Little_Armenia_2020$plot
+all_little_armenia_plots$Little_Armenia_2021$plot
+all_little_armenia_plots$Little_Armenia_2022$plot
+
+# combine plots
+(all_little_armenia_plots$Little_Armenia_2020$plot) / 
+  (all_little_armenia_plots$Little_Armenia_2021$plot) /
+  (all_little_armenia_plots$Little_Armenia_2022$plot)
+```
+
+```{r}
+# calculates RMSE, MAE
+calculate_metrics <- function(observed, predicted) {
+  list(
+    RMSE = sqrt(mean((observed - predicted)^2, na.rm = TRUE)),
+    MAE = mean(abs(observed - predicted), na.rm = TRUE)
+  )
+}
+
+little_armenia_metrics <- lapply(names(all_little_armenia_plots), function(year_key) {
+  df <- all_little_armenia_plots[[year_key]]$data
+  metrics <- calculate_metrics(df$observed, df$expected)
+  data.frame(
+    Year = year_key,
+    RMSE = metrics$RMSE,
+    MAE = metrics$MAE,
+    stringsAsFactors = FALSE
+  )
+})
+
+metrics_little_armenia_1 <- do.call(rbind, little_armenia_metrics)
+metrics_little_armenia_1
+```
+
+```{r}
+residuals_list_1 <- list()
+
+for (year_key in names(all_little_armenia_plots)) {
+  df_year <- all_little_armenia_plots[[year_key]]$data
+  residuals_df <- data.frame(
+    date = df_year$date,
+    year = as.numeric(gsub("Little_Armenia_", "", year_key)), # get the year number
+    observed = df_year$observed,
+    expected = df_year$expected,
+    residual = df_year$observed - df_year$expected
+  )
+  residuals_list_1[[year_key]] <- residuals_df
+}
+
+all_residuals_df_1 <- bind_rows(residuals_list_1)
+
+# plot residuals
+residuals_plot_1 <- ggplot(all_residuals_df_1, aes(x = date, y = residual)) +
+  geom_line(color = "blue", linewidth = 0.7) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black", linewidth = 0.8) +
+  facet_wrap(~ year, scales = "free_x", ncol = 2) +
+  labs(title = "Residuals in Little Armenia by year (all past data)",
+       x = "Date",
+       y = "Residuals") +
+  theme_minimal()
+
+residuals_plot_1
+```
+
+```{r}
+residuals_list_1 <- list()
+
+for (year_key in names(all_little_armenia_plots)) {
+  df_year <- all_little_armenia_plots[[year_key]]$data
+  residuals_df <- data.frame(
+    date = df_year$date,
+    year = as.numeric(gsub("Little_Armenia_", "", year_key)),
+    observed = df_year$observed,
+    expected = df_year$expected,
+    residual = df_year$observed - df_year$expected,
+    std_residual = (df_year$observed - df_year$expected) / sqrt(pmax(df_year$expected, 1e-6))
+  )
+  residuals_list_1[[year_key]] <- residuals_df
+}
+
+all_residuals_df_1 <- bind_rows(residuals_list_1)
+
+# plot standardized residuals
+std_residuals_plot_1 <- ggplot(all_residuals_df_1, aes(x = date, y = std_residual)) +
+  geom_line(color = "purple", linewidth = 0.7) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black", linewidth = 0.8) +
+  facet_wrap(~ year, scales = "free_x", ncol = 2) +
+  labs(title = "Standardized Residuals in Little Armenia by Year (all past data)",
+       x = "Date",
+       y = "Standardized Residuals") +
+  theme_minimal()
+
+std_residuals_plot_1
+```
+
+```{r}
+# compute Ogata rescaled inter-event times
+compute_rescaled_times_1 <- function(event_times, params, age_dist) {
+  z_values <- numeric(length(event_times) - 1)
+
+  for (i in 2:length(event_times)) {
+    prev_events <- event_times[1:(i - 1)]
+
+    # cumulative intensity from t_{i-1} to t_i
+    res <- tryCatch({
+      integrate(
+        custom_intensity_mle_age,
+        lower = event_times[i - 1],
+        upper = event_times[i],
+        params = params,
+        event_times = prev_events,
+        age_distribution = age_dist,
+        rel.tol = 1e-4,
+        subdivisions = 200
+      )$value
+    }, error = function(e) NA)
+
+    z_values[i - 1] <- res
+  }
+
+  return(z_values)
+}
+```
+
+```{r}
+params_2020 <- c(
+  little_armenia_results[["Little_Armenia_2020"]]$baseline,
+  little_armenia_results[["Little_Armenia_2020"]]$age_coefficients,
+  little_armenia_results[["Little_Armenia_2020"]]$excitation_params,
+  little_armenia_results[["Little_Armenia_2020"]]$decay_params
+)
+
+# calculate Ogata rescaled times
+z_vals_2020 <- compute_rescaled_times_1(
+  adj_event_times_little_armenia_2020,
+  params_2020,
+  age_dist_la
+)
+
+# histogram
+hist(z_vals_2020, breaks = 20, main = "Little Armenia 2020 Ogata rescaled inter-event times", 
+     xlab = "z", freq = FALSE)
+curve(dexp(x, rate = 1), add = TRUE, col = "blue", lwd = 2)
+
+# QQ plot
+qqplot(qexp(ppoints(length(z_vals_2020))), z_vals_2020,
+       main = "Little Armenia 2020 QQ plot (Exp(1))",
+       xlab = "theoretical quantiles", ylab = "observed quantiles")
+abline(0, 1, col = "red")
+
+# KS test
+ks.test(1 - exp(-z_vals_2020), "punif")
+```
+
+```{r}
+params_2021 <- c(
+  little_armenia_results[["Little_Armenia_2021"]]$baseline,
+  little_armenia_results[["Little_Armenia_2021"]]$age_coefficients,
+  little_armenia_results[["Little_Armenia_2021"]]$excitation_params,
+  little_armenia_results[["Little_Armenia_2021"]]$decay_params
+)
+
+# calculate Ogata rescaled times
+z_vals_2021 <- compute_rescaled_times_1(
+  adj_event_times_little_armenia_2021,
+  params_2021,
+  age_dist_la
+)
+
+# histogram
+hist(z_vals_2021, breaks = 20, main = "Little Armenia 2021 Ogata rescaled inter-event times", 
+     xlab = "z", freq = FALSE)
+curve(dexp(x, rate = 1), add = TRUE, col = "blue", lwd = 2)
+
+# QQ plot
+qqplot(qexp(ppoints(length(z_vals_2021))), z_vals_2021,
+       main = "Little Armenia 2021 QQ plot (Exp(1))",
+       xlab = "theoretical quantiles", ylab = "observed quantiles")
+abline(0, 1, col = "red")
+
+# KS test
+ks.test(1 - exp(-z_vals_2021), "punif")
+```
+
+```{r}
+params_2022 <- c(
+  little_armenia_results[["Little_Armenia_2022"]]$baseline,
+  little_armenia_results[["Little_Armenia_2022"]]$age_coefficients,
+  little_armenia_results[["Little_Armenia_2022"]]$excitation_params,
+  little_armenia_results[["Little_Armenia_2022"]]$decay_params
+)
+
+# calculate Ogata rescaled times
+z_vals_2022 <- compute_rescaled_times_1(
+  adj_event_times_little_armenia_2022,
+  params_2022,
+  age_dist_la
+)
+
+# histogram
+hist(z_vals_2022, breaks = 20, main = "Little Armenia 2022 Ogata rescaled inter-event times", 
+     xlab = "z", freq = FALSE)
+curve(dexp(x, rate = 1), add = TRUE, col = "blue", lwd = 2)
+
+# QQ plot
+qqplot(qexp(ppoints(length(z_vals_2022))), z_vals_2022,
+       main = "Little Armenia 2022 QQ plot (Exp(1))",
+       xlab = "theoretical quantiles", ylab = "observed quantiles")
+abline(0, 1, col = "red")
+
+# KS test
+ks.test(1 - exp(-z_vals_2022), "punif")
+```
+
+```{r}
+median_residuals_df_1 <- all_residuals_df_1 %>%
+  group_by(date) %>%
+  summarise(median_residual = median(residual, na.rm = TRUE),
+            year = year) %>%
+  ungroup()
+
+# histogram of median daily residuals
+ggplot(median_residuals_df_1, aes(x = median_residual)) +
+  geom_histogram(bins = 30, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "red", linewidth = 0.8) +
+  labs(title = "Histogram of median residuals Little Armenia by year (all past data)",
+       x = "median daily residual",
+       y = "frequency") +
+  facet_wrap(~ year, ncol = 2) +
+  theme_minimal()
+```
+
+
+#### 16 day rolling window approach
+
+Note: Code below adapted from the article "Estimating Covid-19 Transmission Time Using Hawkes Point Processes" by Frederic Schoenberg
+
+https://projecteuclid.org/journals/annals-of-applied-statistics/volume-17/issue-4/Estimating-Covid-19-transmission-time-using-Hawkes-point-processes/10.1214/23-AOAS1765.short
+
+```{r}
+set.seed(85)
+
+years <- c(2020, 2021, 2022)
+
+# log-likelihood function
+log_likelihood <- function(p, year, lambda = 0.01) {
+    mu <- p[1] # background rate
+    K <- p[2:7]  # excitation parameters
+    g <- c(p[8:10], 1 - sum(p[8:10]))  # decay parameters
+    age <- p[11:18]  # age coefficients
+    
+    # age distribution
+    age_data <- get_age_distribution("Little_Armenia")[1:8]
+    total_population <- sum(age_data)
+    age_weights <- age_data / total_population  # normalize
+    
+    days <- length(t3)
+    likelihood <- 0
+    
+    # calculate the conditional intensity of the next event
+    for (i in 1:days) {
+        # past 16 days of incidence
+        if (i > 16) tmp <- t3[i - c(1:16)]
+        if (i < 17) tmp <- c(t3[(i-1):1], rep(0, (17-i)))
+        if (i < 2) tmp <- rep(0, 16)
+        
+        tmp <- rev(tmp)
+        tmp <- tmp[1:length(age_weights)]
+        
+        ind <- min(ceiling(i / 16), length(K))
+
+        expectedn <- max(mu + sum(K[ind] * g * age_weights * age * tmp), 1e-10)
+        
+        if (expectedn <= 0) {
+          expectedn <- 1e-10
+          }
+        # log Poisson likelihood for event counts
+        likelihood <- likelihood + dpois(t3[i], lambda = expectedn, log = TRUE)
+    }
+    age_penalty <- sum(age^2) * lambda  # lambda = tuning parameter (ex 0.01)
+    return(-likelihood + age_penalty)
+}
+
+# optim to maximize the log-likelihood
+fit_little_armenia_by_year <- function(year) {
+    df_name <- paste0("little_armenia_", year)
+    df <- get(df_name, envir = .GlobalEnv)
+    t3 <<- df$incidence
+    days <- length(t3)
+    
+    k <<- 1
+    initial_params <- c(1, rep(0.5, 6), rep(1/4, 3), rep(1, 8))
+    
+    b1 <- optim(initial_params, log_likelihood, year = year,
+                    method = "Nelder-Mead", control = list(maxit = 10000))
+    
+    b2 <- optim(b1$par, log_likelihood, year = year,
+               method = "Nelder-Mead", control = list(maxit = 10000))
+    
+    return(b2$par)
+}
+
+# store results for each community
+result_little_armenia <- matrix(0, ncol = 18, nrow = 3)
+
+# clear file to start fresh before appending new results
+sink("result_little_armenia.txt")
+sink()
+for (m in 1:3) {
+    result_little_armenia[m,] = fit_little_armenia_by_year(years[m])
+    # append to file
+    sink("result_little_armenia.txt", append=T)
+    cat(m, " ", result_little_armenia[m,], "\n")
+    sink()
+}
+
+x1 = scan("C:/Users/cupca/Desktop/UCLA/Thesis/result_little_armenia.txt") 
+x2 <- matrix(x1, ncol = 19, nrow = 3, byrow = TRUE)
+result_little_armenia <- x2[1:3, 2:19]
+result_little_armenia_coefficients <- result_little_armenia[, 11:18]
+```
+
+```{r, warning = F}
+# function for calculating expected deaths
+compute_expected_deaths_little_armenia <- function(params, df, community_name) {
+    mu <- params[1]
+    K <- params[2:7]  # excitation params
+    g <- c(params[8:10], 1 - sum(params[8:10]))  # decay params
+    age_params <- params[11:18]  # age coefficients
+    
+    # age distribution
+    age_data <- get_age_distribution(community_name)[1:8]
+    total_population <- sum(age_data)
+    age_weights <- age_data / total_population  # normalize
+    
+    days <- nrow(df)
+    expected_deaths <- numeric(days)
+    
+    for (i in 1:days) {
+        # past 16 days of incidence
+        if (i > 16) {
+            tmp <- df$incidence[(i-16):(i-1)]
+        } else {
+            tmp <- c(df$incidence[1:(i-1)], rep(0, 16 - (i-1)))  # Pad with 0s if not enough past values
+        }
+        ind <- min(ceiling(i / 16), length(K))  # Ensure index does not exceed length of K
+        
+        expected_deaths[i] <- max(mu + sum(K[ind] * g * age_weights * age_params * tmp), 1e-10)
+    }
+    return(expected_deaths)
+}
+
+# calculates expected vs. observed deaths
+years <- c(2020, 2021, 2022)
+expected_list <- list()
+
+for (m in 1:3) {
+    year <- years[m]
+    df_name <- paste0("little_armenia_", year)
+    df <- get(df_name, envir = .GlobalEnv)
+    params <- result_little_armenia[m, ]
+    expected_deaths <- compute_expected_deaths_little_armenia(params, 
+                                                            df, 
+                                                            community_name = "Little_Armenia")
+    expected_list[[as.character(year)]] <- expected_deaths
+}
+```
+
+```{r}
+# plot expected vs observed deaths
+plots_list <- list()
+
+for (m in 1:3) {
+    year <- years[m]
+    df_name <- paste0("little_armenia_", year)
+    df <- get(df_name, envir = .GlobalEnv)
+    
+    params <- result_little_armenia[m, ]
+    
+    expected_deaths <- compute_expected_deaths_little_armenia(params, df, community_name = "Little_Armenia")
+    
+    # expected deaths
+    df$expected <- expected_deaths
+    
+    p <- ggplot(df, aes(x = date)) +
+      geom_line(aes(y = incidence, color = "Observed"), linewidth = 1) +
+      geom_line(aes(y = expected, color = "Expected"), linewidth = 1) +
+      scale_color_manual(values = c("red", "black")) +
+      labs(title = paste("Expected vs. Observed Deaths for Little Armenia", year),
+           x = "Date", y = "Daily Deaths", color = "Legend") +
+      theme_minimal()
+    
+    plots_list[[as.character(year)]] <- p
+}
+
+# plot by year
+plots_list[["2020"]]
+plots_list[["2021"]]
+plots_list[["2022"]]
+
+# combine plots
+(plots_list[["2020"]]) /
+  (plots_list[["2021"]]) /
+  (plots_list[["2022"]])
+```
+
+```{r}
+# calculate RMSE, MAE
+calculate_metrics <- function(observed, expected) {
+  list(
+    RMSE = sqrt(mean((observed - expected)^2, na.rm = TRUE)),
+    MAE = mean(abs(observed - expected), na.rm = TRUE)
+  )
+}
+
+metrics_list <- list()
+
+for (m in seq_along(years)) {
+  year <- years[m]
+  df <- get(paste0("little_armenia_", year))
+  
+  expected_deaths <- compute_expected_deaths_little_armenia(result_little_armenia[m, ], df, "Little_Armenia")
+  observed_deaths <- df$incidence
+  metrics <- calculate_metrics(observed_deaths, expected_deaths)
+  
+  metrics_list[[m]] <- data.frame(
+    Year = year,
+    RMSE = metrics$RMSE,
+    MAE = metrics$MAE,
+    stringsAsFactors = FALSE
+  )
+}
+
+metrics_little_armenia_2 <- do.call(rbind, metrics_list)
+metrics_little_armenia_2
+```
+
+```{r}
+year_dfs <- list(
+  `2020` = little_armenia_2020,
+  `2021` = little_armenia_2021,
+  `2022` = little_armenia_2022
+)
+
+residuals_list_2 <- list()
+
+for (y in 1:length(year_dfs)) {
+    year_name <- names(year_dfs)[y]
+    df_year <- year_dfs[[y]]
+    expected_deaths <- compute_expected_deaths_little_armenia(result_little_armenia[y, ], 
+                                                            df_year, "Little_Armenia")
+    observed_deaths <- df_year$incidence
+    
+    residuals_df <- data.frame(
+        date = df_year$date,
+        year = as.numeric(year_name),
+        observed = observed_deaths,
+        expected = expected_deaths,
+        residual = observed_deaths - expected_deaths
+    )
+    residuals_list_2[[y]] <- residuals_df
+}
+
+all_residuals_df_2 <- bind_rows(residuals_list_2)
+
+# plot residuals
+residuals_plot_2 <- ggplot(all_residuals_df_2, aes(x = date, y = residual)) +
+  geom_line(color = "blue", linewidth = 0.7) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black", linewidth = 0.8) +
+  facet_wrap(~ year, scales = "free_x", ncol = 2) +
+  labs(title = "Residuals in Little Armenia by year (16 day window approach)",
+       x = "Date",
+       y = "Residuals") +
+  theme_minimal()
+
+residuals_plot_2
+```
+
+```{r}
+residuals_list_2 <- list()
+
+for (year_key in names(all_little_armenia_plots)) {
+  df_year <- all_little_armenia_plots[[year_key]]$data
+  residuals_df <- data.frame(
+    date = df_year$date,
+    year = as.numeric(gsub("Little_Armenia_", "", year_key)),
+    observed = df_year$observed,
+    expected = df_year$expected,
+    residual = df_year$observed - df_year$expected,
+    std_residual = (df_year$observed - df_year$expected) / sqrt(pmax(df_year$expected, 1e-6))
+  )
+  residuals_list_2[[year_key]] <- residuals_df
+}
+
+all_residuals_df_2 <- bind_rows(residuals_list_2)
+
+# plot standardized residuals
+std_residuals_plot_2 <- ggplot(all_residuals_df_2, aes(x = date, y = std_residual)) +
+  geom_line(color = "purple", linewidth = 0.7) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black", linewidth = 0.8) +
+  facet_wrap(~ year, scales = "free_x", ncol = 2) +
+  labs(title = "Standardized Residuals in Little Armenia by Year (16 day window approach)",
+       x = "Date",
+       y = "Standardized Residuals") +
+  theme_minimal()
+
+std_residuals_plot_2
+```
+
+```{r}
+# compute Ogata rescaled inter-event times
+compute_rescaled_times_2 <- function(df, params, community_name = "Little_Armenia") {
+  mu <- params[1] 
+  K <- params[2:7]
+  g <- c(params[8:10], 1 - sum(params[8:10]))
+  age_params <- params[11:18]
+  
+  age_data <- get_age_distribution(community_name)[1:8]
+  age_weights <- age_data / sum(age_data)
+  
+  event_times <- which(df$incidence > 0)
+
+  if (length(event_times) < 2) stop("Need at least two events for Ogata rescaling.")
+  
+  z_values <- numeric(length(event_times) - 1)
+  
+  for (i in 2:length(event_times)) {
+    t_start <- event_times[i - 1]
+    t_end   <- event_times[i]
+
+    integrand <- function(s) {
+      s <- as.numeric(s)[1]  # ensure s is scalar
+      idx <- floor(s)
+      if (length(idx) != 1 || is.na(idx) || idx <= 0) return(0)
+      
+      if (idx > 16) {
+        tmp <- df$incidence[(idx - 16):(idx - 1)]
+      } else if (idx > 1) {
+        tmp <- c(df$incidence[1:(idx - 1)], rep(0, 16 - (idx - 1)))
+      } else {
+        tmp <- rep(0, 16)
+      }
+      ind <- min(ceiling(idx / 16), length(K))
+      lambda <- mu + sum(K[ind] * g * age_weights * age_params * tmp)
+    
+      return(max(lambda, 1e-10))
+    }
+    
+    res <- tryCatch({
+      val <- integrate(Vectorize(integrand), lower = t_start, upper = t_end, 
+                 rel.tol = 1e-4, subdivisions = 1000)$value
+      if (!is.finite(val)) NA else val
+    }, error = function(e) {
+      message("Integration error at interval: ", t_start, "-", t_end, " -> ", conditionMessage(e))
+      return(NA)
+    })
+    z_values[i - 1] <- res
+  }
+  return(z_values)
+}
+```
+
+```{r}
+df_2020 <- little_armenia_2020
+params_2020 <- result_little_armenia[1, ]
+
+# calculate Ogata rescaled times
+z_vals_2020 <- compute_rescaled_times_2(df_2020, params_2020)
+summary(z_vals_2020)
+sum(is.na(z_vals_2020))
+
+# histogram
+hist(z_vals_2020, breaks = 20, probability = TRUE, 
+     main = "Little Armenia 2020 Ogata rescaled inter-event times",
+     xlab = "z (rescaled time)")
+curve(dexp(x, rate = 1), add = TRUE, col = "blue", lwd = 2)
+
+# QQ plot
+qqplot(qexp(ppoints(length(z_vals_2020))), z_vals_2020,
+       main = "Little Armenia 2020 QQ plot (Exp(1))",
+       xlab = "theoretical quantiles", ylab = "observed quantiles")
+abline(0, 1, col = "red")
+
+# KS test
+ks.test(1 - exp(-z_vals_2020), "punif")
+```
+
+```{r}
+df_2021 <- little_armenia_2021
+params_2021 <- result_little_armenia[1, ]
+
+# calculate Ogata rescaled times
+z_vals_2021 <- compute_rescaled_times_2(df_2021, params_2021)
+summary(z_vals_2021)
+sum(is.na(z_vals_2021))
+
+# histogram
+hist(z_vals_2021, breaks = 20, probability = TRUE, 
+     main = "Little Armenia 2021 Ogata rescaled inter-event times",
+     xlab = "z (rescaled time)")
+curve(dexp(x, rate = 1), add = TRUE, col = "blue", lwd = 2)
+
+# QQ plot
+qqplot(qexp(ppoints(length(z_vals_2021))), z_vals_2021,
+       main = "Little Armenia 2021 QQ Plot (Exp(1))",
+       xlab = "theoretical quantiles", ylab = "observed quantiles")
+abline(0, 1, col = "red")
+
+# KS test
+ks.test(1 - exp(-z_vals_2021), "punif")
+```
+
+```{r}
+df_2022 <- little_armenia_2022
+params_2022 <- result_little_armenia[1, ]
+
+# calculate Ogata rescaled times
+z_vals_2022 <- compute_rescaled_times_2(df_2022, params_2022)
+summary(z_vals_2022)
+sum(is.na(z_vals_2022))
+
+# histogram
+hist(z_vals_2022, breaks = 20, probability = TRUE, 
+     main = "Little Armenia 2022 Ogata rescaled inter-event time",
+     xlab = "z (rescaled time)")
+curve(dexp(x, rate = 1), add = TRUE, col = "blue", lwd = 2)
+
+# QQ plot
+qqplot(qexp(ppoints(length(z_vals_2022))), z_vals_2022,
+       main = "Little Armenia 2022 QQ plot (Exp(1))",
+       xlab = "theoretical quantiles", ylab = "observed quantiles")
+abline(0, 1, col = "red")
+
+# KS test
+ks.test(1 - exp(-z_vals_2022), "punif")
+```
+
+```{r}
+median_residuals_df_2 <- all_residuals_df_2 %>%
+  group_by(date) %>%
+  summarise(median_residual = median(residual, na.rm = TRUE),
+            year = year) %>%
+  ungroup()
+
+# histogram of median daily residuals
+ggplot(median_residuals_df_2, aes(x = median_residual)) +
+  geom_histogram(bins = 30, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "red", linewidth = 0.8) +
+  labs(title = "Histogram of median residuals Little Armenia by year (16-day rolling window)",
+       x = "median daily residual",
+       y = "frequency") +
+  facet_wrap(~ year, ncol = 2) +
+  theme_minimal()
+```
+

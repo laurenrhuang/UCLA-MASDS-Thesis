@@ -1,0 +1,1034 @@
+---
+title: "MASDS Thesis"
+author: "Lauren Huang"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+library(utils)
+library(dplyr)
+library(purrr)
+library(fs)
+library(stringr)
+library(ggplot2)
+library(sf)
+library(tmap)
+library(cartogram)
+library(stelfi)
+library(lubridate)
+library(hawkes)
+library(MASS)
+library(fitdistrplus)
+library(PtProcess)
+library(stats)
+library(foreach)
+library(sn)
+library(geosphere)
+library(spData)
+library(sf)
+library(tidyr)
+library(geodist)
+library(vegan)
+library(ade4)
+library(scales)
+library(patchwork)
+library(parallel)
+library(reshape2)
+```
+
+# Read in the Data
+
+```{r}
+# parent directory containing relevant folders
+parent_dir <- "C:/Users/cupca/Desktop/UCLA/Thesis"
+
+# all folders within the parent directory
+folder_list <- dir_ls(path = parent_dir, type = "dir")
+
+# folders within the parent directory
+folders <- c("2020", "2021", "2022", "2023")
+
+# construct full paths to the specified directories
+full_paths <- file.path(parent_dir, folders)
+
+# a function to read and standardize columns of each csv file
+read_and_standardize <- function(file) {
+  df <- read.csv(file)
+  # convert certain columns to the same format
+  columns_to_convert <- c("Cases", "Case.Rate")
+  # replace occurrences of -- with 0
+  value_to_replace <- "--"
+  # convert occurrences of the specific character value in the specified columns to integer 0
+  df <- df %>%
+  mutate(across(all_of(columns_to_convert), 
+                 ~ ifelse(. == value_to_replace, 0, .))) %>%
+  mutate(across(all_of(columns_to_convert), 
+                 ~ as.numeric(as.character(.))))
+  
+  # standardize columns: add NA/missing columns if they do not exist
+  if (!("Deaths" %in% names(df))) {
+    df$Deaths <- NA
+  }
+  if (!("Death.Rate" %in% names(df))) {
+    df$Death.Rate <- NA
+  }
+  return(df)
+}
+
+# read, combine all csv files from all folders
+all_covid_data <- full_paths %>%
+  # list all csv files in the folder
+  map(~ dir_ls(path = .x, regexp = "\\.csv$", type = "file")) %>%
+  # flatten list of file paths
+  unlist() %>%
+  # read, standardize each csv file
+  map_df(read_and_standardize, .id = "source_id")
+
+# save combined files to a new csv file
+write.csv(all_covid_data, "all_covid_data.csv", row.names = FALSE)
+```
+
+## Data Cleaning
+
+```{r}
+# define a function that relabels source_id as Year
+replace_if_contains <- function(df, substring_to_find, new_value) {
+  # replace values containing the substring in the specified column (source_id)
+  df <- df %>%
+    mutate(source_id = ifelse(str_detect(source_id, substring_to_find), new_value, source_id))
+  return(df)
+}
+
+all_covid_data <- replace_if_contains(df=all_covid_data, substring_to_find="2020", new_value="2020")
+all_covid_data <- replace_if_contains(df=all_covid_data, substring_to_find="2021", new_value="2021")
+all_covid_data <- replace_if_contains(df=all_covid_data, substring_to_find="2022", new_value="2022")
+all_covid_data <- replace_if_contains(df=all_covid_data, substring_to_find="2023", new_value="2023")
+
+# rename column as Year
+names(all_covid_data)[names(all_covid_data) == 'source_id'] <- 'year'
+
+# Date Preprocessing
+
+# extract month
+all_covid_data$month <- substr(all_covid_data$date, nchar(all_covid_data$date) - 3, nchar(all_covid_data$date) - 2)
+
+# extract day
+all_covid_data$day <- substr(all_covid_data$date, nchar(all_covid_data$date) - 1, nchar(all_covid_data$date))
+
+# create a column containing the full date (month, day, year)
+all_covid_data$date <- as.Date(paste(all_covid_data$month, all_covid_data$day, all_covid_data$year), "%m%d%Y")
+
+# drop individual month, day, year columns we no longer need
+all_covid_data <- subset(all_covid_data, select = -c(year, month, day))
+
+# create new column called incidence, counting new deaths per day in each community
+all_covid_data <- all_covid_data %>%
+  arrange(name, date) %>%
+  group_by(name) %>%
+  mutate(incidence = Deaths - lag(Deaths, default = 0)) %>%
+  ungroup()
+
+# replace negative or NA values in the incidence column with 0
+all_covid_data <- all_covid_data %>%
+  mutate(incidence = ifelse(is.na(incidence) | incidence < 0, 0, incidence))
+
+# replace NA values with 0 for incidence
+all_covid_data <- all_covid_data %>%
+  mutate(Deaths = ifelse(is.na(Deaths), 0, Deaths))
+
+# convert the date column to Date type
+community_data <- all_covid_data %>%
+  mutate(date = as.Date(date)) %>%
+  filter(date > 0) %>%
+  filter(('2020-05-16' < date) & (date < '2023-01-02'))
+
+# replace NA, 0 cases with 0.5 or 1
+community_data <- community_data %>%
+  mutate(Deaths = ifelse(is.na(Deaths), 0.5, Deaths),
+         Deaths = ifelse(Deaths == 0, 0.5, Deaths))
+
+# convert dates to numeric time (days since the start of the data)
+start_date <- min(community_data$date, na.rm = TRUE)
+community_data <- community_data %>%
+  mutate(time = as.numeric(difftime(date, start_date, units = "days")))
+
+# remove rows with invalid times
+community_data <- community_data %>%
+  filter(!is.na(time))
+```
+
+## Daily death incidence
+
+prepare daily incidence data
+
+```{r}
+# Santa Monica
+santa_monica <- community_data %>%
+  filter(name == "City of Santa Monica")
+
+# Silverlake
+silverlake <- community_data %>%
+  filter(name == "Los Angeles - Silverlake")
+
+# Pomona
+pomona <- community_data %>%
+  filter(name == "City of Pomona")
+
+# Glendale
+glendale <- community_data %>%
+  filter(name == "City of Glendale")
+
+# El Monte
+el_monte <- community_data %>%
+  filter(name == "City of El Monte")
+
+# Little Armenia
+little_armenia <- community_data %>%
+  filter(name == "Los Angeles - Little Armenia")
+
+# Signal Hill
+signal_hill <- community_data %>%
+  filter(name == "City of Signal Hill")
+```
+
+prepare transformed event times for each community
+
+```{r}
+# cannot be simultaneous events, need to transform event times
+generate_event_times <- function(time, deaths) {
+  if (deaths > 0) {
+    # distribute event times uniformly within the same day
+    return(time + runif(deaths, min = 0, max = 1))  # random times
+  } else {
+    return(NULL)  # no deaths on this day
+  }
+}
+
+# generate event times for each community
+event_times <- community_data %>%
+  group_by(name) %>%
+  summarise(event_times = list(unlist(mapply(generate_event_times, time, incidence))))
+# using death incidence instead of cumulative deaths
+
+# Santa Monica
+event_times_santa_monica <- event_times %>%
+  filter(name == "City of Santa Monica") %>%
+  pull(event_times)
+# sort and get unique times
+event_times_santa_monica <- sort(unlist(event_times_santa_monica))
+event_times_santa_monica_unique <- unique(event_times_santa_monica)
+adj_event_times_santa_monica <- event_times_santa_monica_unique + 
+  seq(0, length(event_times_santa_monica_unique) - 1) * 1e-5
+
+# Silverlake
+event_times_silverlake <- event_times %>%
+  filter(name == "Los Angeles - Silverlake") %>%
+  pull(event_times)
+# sort and get unique times
+event_times_silverlake <- sort(unlist(event_times_silverlake))
+event_times_silverlake_unique <- unique(event_times_silverlake)
+adj_event_times_silverlake <- event_times_silverlake_unique + 
+  seq(0, length(event_times_silverlake_unique) - 1) * 1e-5
+
+
+# Pomona
+event_times_pomona <- event_times %>%
+  filter(name == "City of Pomona") %>%
+  pull(event_times)
+# sort and get unique times
+event_times_pomona <- sort(unlist(event_times_pomona))
+event_times_pomona_unique <- unique(event_times_pomona)
+adj_event_times_pomona <- event_times_pomona_unique + 
+  seq(0, length(event_times_pomona_unique) - 1) * 1e-5
+
+
+# Glendale
+event_times_glendale <- event_times %>%
+  filter(name == "City of Glendale") %>%
+  pull(event_times)
+# sort and get unique times
+event_times_glendale <- sort(unlist(event_times_glendale))
+event_times_glendale_unique <- unique(event_times_glendale)
+adj_event_times_glendale <- event_times_glendale_unique + 
+  seq(0, length(event_times_glendale_unique) - 1) * 1e-5
+
+
+# El Monte
+event_times_el_monte <- event_times %>%
+  filter(name == "City of El Monte") %>%
+  pull(event_times)
+# sort and get unique times
+event_times_el_monte <- sort(unlist(event_times_el_monte))
+event_times_el_monte_unique <- unique(event_times_el_monte)
+adj_event_times_el_monte <- event_times_el_monte_unique + 
+  seq(0, length(event_times_el_monte_unique) - 1) * 1e-5
+
+# Little Armenia
+event_times_little_armenia <- event_times %>%
+  filter(name == "Los Angeles - Little Armenia") %>%
+  pull(event_times)
+# sort and get unique times
+event_times_little_armenia <- sort(unlist(event_times_little_armenia))
+event_times_little_armenia_unique <- unique(event_times_little_armenia)
+adj_event_times_little_armenia <- event_times_little_armenia_unique + 
+  seq(0, length(event_times_little_armenia_unique) - 1) * 1e-5
+
+# Signal Hill
+event_times_signal_hill <- event_times %>%
+  filter(name == "City of Signal Hill") %>%
+  pull(event_times)
+# sort and get unique times
+event_times_signal_hill <- sort(unlist(event_times_signal_hill))
+event_times_signal_hill_unique <- unique(event_times_signal_hill)
+adj_event_times_signal_hill <- event_times_signal_hill_unique + 
+  seq(0, length(event_times_signal_hill_unique) - 1) * 1e-5
+```
+
+## Weekly death incidence
+
+prepare weekly incidence data
+
+```{r}
+# add a 'week' column representing the start of the week
+all_covid_weekly <- all_covid_data %>%
+  mutate(week = floor_date(date, unit = "week"))
+
+# aggregate the data by community and week
+all_covid_weekly <- all_covid_weekly %>%
+  group_by(name, week) %>%
+  summarise(
+    weekly_cases = sum(Cases, na.rm = TRUE), # sum cases each week
+    weekly_deaths = sum(Deaths, na.rm = TRUE), # sum deaths each week
+    weekly_incidence = sum(incidence, na.rm = TRUE), # sum death incidence each week
+    population = first(population) # use the first pop value
+  ) %>%
+  ungroup()
+
+# calculate derived metrics (ex. weekly death rate)
+all_covid_weekly <- all_covid_weekly %>%
+  mutate(weekly_death_rate = (weekly_deaths / population) * 100000, # death rate per 100k
+  weekly_incidence = ifelse(is.na(weekly_incidence), 0, weekly_incidence)) # replace NA values with 0
+
+# convert the date column to Date type
+community_data_weekly <- all_covid_weekly %>%
+  mutate(week = as.Date(week)) %>%
+  filter(week > 0) %>%
+  filter(('2020-05-16' < week) & (week < '2023-01-02')) %>% 
+  # exclude date gap 11/21/22-1/2/23 and 1/3/23-11/21/23
+  mutate(weekly_deaths = ifelse(is.na(weekly_deaths), 0.5, weekly_deaths), # replace NA, 0 with 0.5
+         weekly_deaths = ifelse(weekly_deaths == 0, 0.5, weekly_deaths),
+         weekly_incidence = ifelse(is.na(weekly_incidence), 0.5, weekly_incidence),
+         weekly_incidence = ifelse(weekly_incidence == 0, 0.5, weekly_incidence))
+
+# convert dates to numeric time (weeks since the start)
+start_week <- min(community_data_weekly$week, na.rm = TRUE)
+community_data_weekly <- community_data_weekly %>%
+  mutate(time = as.numeric(difftime(week, start_week, units = "weeks")))
+
+# look for NA values, remove rows with invalid times
+community_data_weekly <- community_data_weekly %>%
+  filter(!is.na(time))
+```
+
+```{r}
+# convert dates to weekly scale
+santa_monica_weekly <- santa_monica %>%
+  mutate(week = floor_date(date, unit = "week")) %>%
+  group_by(week) %>%
+  summarize(
+    weekly_incidence = sum(incidence, na.rm = TRUE),   # sum deaths per week
+    total_population = first(population),              # assume population is constant
+    total_deaths = sum(Deaths, na.rm = TRUE),          # sum deaths per week
+    avg_death_rate = mean(Death.Rate, na.rm = TRUE),   # avg death rate per week
+    avg_cases = mean(Cases, na.rm = TRUE),             # avg cases per week
+    avg_case_rate = mean(Case.Rate, na.rm = TRUE),     # avg case rate per week
+    .groups = "drop"
+  ) %>%
+  filter(week > as.Date("2020-05-16") & week < as.Date("2023-01-02"))
+
+silverlake_weekly <- silverlake %>%
+  mutate(week = floor_date(date, unit = "week")) %>%
+  group_by(week) %>%
+  summarize(
+    weekly_incidence = sum(incidence, na.rm = TRUE),
+    total_population = first(population),
+    total_deaths = sum(Deaths, na.rm = TRUE),
+    avg_death_rate = mean(Death.Rate, na.rm = TRUE),
+    avg_cases = mean(Cases, na.rm = TRUE),
+    avg_case_rate = mean(Case.Rate, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(week > as.Date("2020-05-16") & week < as.Date("2023-01-02"))
+
+pomona_weekly <- pomona %>%
+  mutate(week = floor_date(date, unit = "week")) %>%
+  group_by(week) %>%
+  summarize(
+    weekly_incidence = sum(incidence, na.rm = TRUE),
+    total_population = first(population),
+    total_deaths = sum(Deaths, na.rm = TRUE),
+    avg_death_rate = mean(Death.Rate, na.rm = TRUE),
+    avg_cases = mean(Cases, na.rm = TRUE),
+    avg_case_rate = mean(Case.Rate, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(week > as.Date("2020-05-16") & week < as.Date("2023-01-02"))
+
+glendale_weekly <- glendale %>%
+  mutate(week = floor_date(date, unit = "week")) %>%
+  group_by(week) %>%
+  summarize(
+    weekly_incidence = sum(incidence, na.rm = TRUE),
+    total_population = first(population),
+    total_deaths = sum(Deaths, na.rm = TRUE),
+    avg_death_rate = mean(Death.Rate, na.rm = TRUE),
+    avg_cases = mean(Cases, na.rm = TRUE),
+    avg_case_rate = mean(Case.Rate, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(week > as.Date("2020-05-16") & week < as.Date("2023-01-02"))
+
+el_monte_weekly <- el_monte %>%
+  mutate(week = floor_date(date, unit = "week")) %>%
+  group_by(week) %>%
+  summarize(
+    weekly_incidence = sum(incidence, na.rm = TRUE),
+    total_population = first(population),
+    total_deaths = sum(Deaths, na.rm = TRUE),
+    avg_death_rate = mean(Death.Rate, na.rm = TRUE),
+    avg_cases = mean(Cases, na.rm = TRUE),
+    avg_case_rate = mean(Case.Rate, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(week > as.Date("2020-05-16") & week < as.Date("2023-01-02"))
+
+little_armenia_weekly <- little_armenia %>%
+  mutate(week = floor_date(date, unit = "week")) %>%
+  group_by(week) %>%
+  summarize(
+    weekly_incidence = sum(incidence, na.rm = TRUE),
+    total_population = first(population),
+    total_deaths = sum(Deaths, na.rm = TRUE),
+    avg_death_rate = mean(Death.Rate, na.rm = TRUE),
+    avg_cases = mean(Cases, na.rm = TRUE),
+    avg_case_rate = mean(Case.Rate, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(week > as.Date("2020-05-16") & week < as.Date("2023-01-02"))
+
+signal_hill_weekly <- signal_hill %>%
+  mutate(week = floor_date(date, unit = "week")) %>%
+  group_by(week) %>%
+  summarize(
+    weekly_incidence = sum(incidence, na.rm = TRUE),
+    total_population = first(population), 
+    total_deaths = sum(Deaths, na.rm = TRUE),
+    avg_death_rate = mean(Death.Rate, na.rm = TRUE),
+    avg_cases = mean(Cases, na.rm = TRUE),
+    avg_case_rate = mean(Case.Rate, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(week > as.Date("2020-05-16") & week < as.Date("2023-01-02"))
+```
+
+prepare transformed event times for each community
+
+```{r}
+# cannot be "simultaneous events" (ex. multiple deaths on a day), need to transform event times
+generate_event_times <- function(time, deaths) {
+  if (deaths > 0) {
+    # distribute event times uniformly within the same day
+    return(time + runif(deaths, min = 0, max = 1))  # random times within the day
+  } else {
+    return(NULL)  # no deaths on this day
+  }
+}
+
+# generate event times for each community
+event_times_weekly <- community_data_weekly %>%
+  group_by(name) %>%
+  summarise(event_times = list(unlist(mapply(generate_event_times, time, weekly_incidence)))) 
+
+# Santa Monica
+event_times_santa_monica_weekly <- event_times_weekly %>%
+  filter(name == "City of Santa Monica") %>%
+  pull(event_times)
+# sort and get unique times
+event_times_santa_monica_weekly <- sort(unlist(event_times_santa_monica_weekly))
+event_times_santa_monica_weekly_unique <- unique(event_times_santa_monica_weekly)
+adj_event_times_santa_monica_weekly <- event_times_santa_monica_weekly_unique + 
+  seq(0, length(event_times_santa_monica_weekly_unique) - 1) * 1e-5
+
+# Silverlake
+event_times_silverlake_weekly <- event_times_weekly %>%
+  filter(name == "Los Angeles - Silverlake") %>%
+  pull(event_times)
+# sort and get unique times
+event_times_silverlake_weekly <- sort(unlist(event_times_silverlake_weekly))
+event_times_silverlake_weekly_unique <- unique(event_times_silverlake_weekly)
+adj_event_times_silverlake_weekly <- event_times_silverlake_weekly_unique + 
+  seq(0, length(event_times_silverlake_weekly_unique) - 1) * 1e-5
+
+# Pomona
+event_times_pomona_weekly <- event_times_weekly %>%
+  filter(name == "City of Pomona") %>%
+  pull(event_times)
+# sort and get unique times
+event_times_pomona_weekly <- sort(unlist(event_times_pomona_weekly))
+event_times_pomona_weekly_unique <- unique(event_times_pomona_weekly)
+adj_event_times_pomona_weekly <- event_times_pomona_weekly_unique + 
+  seq(0, length(event_times_pomona_weekly_unique) - 1) * 1e-5
+
+# Glendale
+event_times_glendale_weekly <- event_times_weekly %>%
+  filter(name == "City of Glendale") %>%
+  pull(event_times)
+# sort and get unique times
+event_times_glendale_weekly <- sort(unlist(event_times_glendale_weekly))
+event_times_glendale_weekly_unique <- unique(event_times_glendale_weekly)
+adj_event_times_glendale_weekly <- event_times_glendale_weekly_unique + 
+  seq(0, length(event_times_glendale_weekly_unique) - 1) * 1e-5
+
+# El Monte
+event_times_el_monte_weekly <- event_times_weekly %>%
+  filter(name == "City of El Monte") %>%
+  pull(event_times)
+# sort and get unique times
+event_times_el_monte_weekly <- sort(unlist(event_times_el_monte_weekly))
+event_times_el_monte_weekly_unique <- unique(event_times_el_monte_weekly)
+adj_event_times_el_monte_weekly <- event_times_el_monte_weekly_unique + 
+  seq(0, length(event_times_el_monte_weekly_unique) - 1) * 1e-5
+
+# Little Armenia
+event_times_little_armenia_weekly <- event_times_weekly %>%
+  filter(name == "Los Angeles - Little Armenia") %>%
+  pull(event_times)
+# sort and get unique times
+event_times_little_armenia_weekly <- sort(unlist(event_times_little_armenia_weekly))
+event_times_little_armenia_weekly_unique <- unique(event_times_little_armenia_weekly)
+adj_event_times_little_armenia_weekly <- event_times_little_armenia_weekly_unique + 
+  seq(0, length(event_times_little_armenia_weekly_unique) - 1) * 1e-5
+
+# Signal Hill
+event_times_signal_hill_weekly <- event_times_weekly %>%
+  filter(name == "City of Signal Hill") %>%
+  pull(event_times)
+# sort and get unique times
+event_times_signal_hill_weekly <- sort(unlist(event_times_signal_hill_weekly))
+event_times_signal_hill_weekly_unique <- unique(event_times_signal_hill_weekly)
+adj_event_times_signal_hill_weekly <- event_times_signal_hill_weekly_unique + 
+  seq(0, length(event_times_signal_hill_weekly_unique) - 1) * 1e-5
+```
+
+# Hawkes Modeling and Analysis
+
+## Hawkes Model Process using stelfi package
+
+Note: Code below adapted from tutorial in the R package stelfi documentation: https://cmjt.github.io/stelfi/univariate-hawkes.html
+
+How to interpret show_hawkes() output
+1. top: the estimated conditional intensity
+2. bottom: the data
+
+How to interpret GOF output plots
+1. top left, plots the compensator values against the observed times, which under a well fitting model should align;
+2. top right, a transformed QQ plot, the observed quantities should align with the theoretical quantiles under a well fitting model;
+3. bottom left, the compensator differences, which under the model are assumed to be distributed;
+4. bottom right, consecutive compensator differences, which should show no obvious pattern (no autocorrelation evident) under a well fitting model.
+
+### stelfi daily
+
+```{r}
+# function to process and plot
+stelfi_daily <- function(community_name, community_data, event_times, start_values) {
+  
+  # adjust event times
+  event_times <- sort(unlist(event_times))
+  event_times_unique <- unique(event_times)
+  adj_event_times <- event_times_unique + seq(0, length(event_times_unique) - 1) * 1e-5
+  
+  # fit model
+  fit <- fit_hawkes(times = adj_event_times, parameters = start_values)
+  
+  # model summary and gof plots
+  print(show_hawkes(fit))
+  print(show_hawkes_GOF(fit))
+  
+  # get parameters
+  params <- get_coefs(fit)
+  mu <- params[1]
+  alpha <- params[2]
+  beta <- params[3]
+  
+  # calculate expected deaths
+  compute_expected_deaths <- function(event_times, mu, alpha, beta) {
+    days <- max(event_times)
+    lambda_t <- numeric(days)
+    for (t in 1:days) {
+      past_events <- event_times[event_times < t]
+      lambda_t[t] <- mu + sum(alpha * exp(-beta * (t - past_events)))
+    }
+    return(lambda_t)
+  }
+  
+  expected_deaths <- compute_expected_deaths(adj_event_times, mu, alpha, beta)
+  expected_deaths <- expected_deaths[1:794]  # daily event times range
+  
+  # create date sequence
+  start_date <- min(community_data$date)
+  date_sequence <- seq(start_date, by = "day", length.out = 794)
+  
+  df <- data.frame(
+    date = community_data$date,
+    observed = community_data$incidence,
+    expected = expected_deaths
+  )
+  
+  # plot
+  plot <- ggplot(df, aes(x = date)) +
+    geom_line(aes(y = observed, color = "Observed"), linewidth = 1) +
+    geom_line(aes(y = expected, color = "Expected"), linewidth = 1) +
+    labs(title = paste("Expected vs. Observed Deaths for", community_name),
+         x = "Date", y = "Daily Deaths") +
+    scale_color_manual(values = c("red", "black")) +
+    theme_minimal()
+  
+  return(list(
+    expected_deaths = expected_deaths,
+    adj_event_times = adj_event_times,
+    plot = plot
+  ))
+}
+
+results_daily_sm <- stelfi_daily("Santa Monica", santa_monica, event_times_santa_monica, 
+                                c(mu = 9, alpha = 3, beta = 10))
+results_daily_s  <- stelfi_daily("Silverlake", silverlake, event_times_silverlake, 
+                                c(mu = 9, alpha = 3, beta = 10))
+results_daily_p  <- stelfi_daily("Pomona", pomona, event_times_pomona, 
+                                c(mu = 9, alpha = 3, beta = 10))
+results_daily_g  <- stelfi_daily("Glendale", glendale, event_times_glendale, 
+                                c(mu = 9, alpha = 3, beta = 10))
+results_daily_em <- stelfi_daily("El Monte", el_monte, event_times_el_monte, 
+                                c(mu = 9, alpha = 3, beta = 10))
+results_daily_la <- stelfi_daily("Little Armenia", little_armenia, event_times_little_armenia, 
+                                c(mu = 9, alpha = 3, beta = 10))
+results_daily_sh <- stelfi_daily("Signal Hill", signal_hill, event_times_signal_hill, 
+                                c(mu = 9, alpha = 3, beta = 10))
+```
+
+```{r}
+# combine plots
+(results_daily_sm$plot | results_daily_s$plot | results_daily_p$plot) / 
+  (results_daily_g$plot | results_daily_em$plot | results_daily_la$plot) / 
+  (results_daily_sh$plot)
+
+results_daily_sm$plot
+
+(results_daily_s$plot | results_daily_p$plot | results_daily_g$plot) /
+  (results_daily_em$plot | results_daily_la$plot | results_daily_sh$plot)
+```
+
+RMSE & MAE
+
+```{r}
+# observed deaths
+observed_deaths_santa_monica <- santa_monica$incidence
+observed_deaths_silverlake <- silverlake$incidence
+observed_deaths_pomona <- pomona$incidence
+observed_deaths_glendale <- glendale$incidence
+observed_deaths_el_monte <- el_monte$incidence
+observed_deaths_little_armenia <- little_armenia$incidence
+observed_deaths_signal_hill <- signal_hill$incidence
+
+# expected/predicted deaths
+expected_deaths_santa_monica <- results_daily_sm$expected_deaths
+expected_deaths_silverlake <- results_daily_s$expected_deaths
+expected_deaths_pomona <- results_daily_p$expected_deaths
+expected_deaths_glendale <- results_daily_g$expected_deaths
+expected_deaths_el_monte <- results_daily_em$expected_deaths
+expected_deaths_little_armenia <- results_daily_la$expected_deaths
+expected_deaths_signal_hill <- results_daily_sh$expected_deaths
+
+
+observed_deaths <- list(
+  santa_monica = observed_deaths_santa_monica,
+  silverlake = observed_deaths_silverlake,
+  pomona = observed_deaths_pomona,
+  glendale = observed_deaths_glendale,
+  el_monte = observed_deaths_el_monte,
+  little_armenia = observed_deaths_little_armenia,
+  signal_hill = observed_deaths_signal_hill
+)
+
+expected_deaths <- list(
+  santa_monica = expected_deaths_santa_monica,
+  silverlake = expected_deaths_silverlake,
+  pomona = expected_deaths_pomona,
+  glendale = expected_deaths_glendale,
+  el_monte = expected_deaths_el_monte,
+  little_armenia = expected_deaths_little_armenia,
+  signal_hill = expected_deaths_signal_hill
+)
+
+# calculate RMSE
+calculate_rmse <- function(observed, expected) {
+  sqrt(mean((observed - expected)^2, na.rm = TRUE))
+}
+rmse_values <- sapply(names(observed_deaths), function(community) {
+  calculate_rmse(observed_deaths[[community]], expected_deaths[[community]])
+})
+rmse_daily_stelfi <- data.frame(
+  community = names(observed_deaths),
+  rmse = rmse_values
+)
+print(rmse_daily_stelfi)
+
+# calculate MAE
+calculate_mae <- function(observed, expected) {
+  mean(abs(observed - expected), na.rm = TRUE)
+}
+mae_values <- sapply(names(observed_deaths), function(community) {
+  calculate_mae(observed_deaths[[community]], expected_deaths[[community]])
+})
+mae_daily_fit <- data.frame(
+  community = names(observed_deaths),
+  mae = mae_values
+)
+print(mae_daily_fit)
+```
+
+### Likelihood ratio test: Gamma vs Exponential distribution
+
+- $H_0$: Reject the null hypothesis that the data follows an exponential distribution. The gamma model (with $alpha \neq 1$ fits significantly better.
+- $H_a$: Fail to reject the null hypothesis. The simpler exponential model is enough.
+
+1. If LRT rejects null hypothesis, run KS Gamma test.
+2. If LRT does not reject null hypothesis, run KS Exponential test.
+
+```{r}
+# list of communities
+communities <- list(
+  santa_monica = adj_event_times_santa_monica,
+  silverlake = adj_event_times_silverlake,
+  pomona = adj_event_times_pomona,
+  glendale = adj_event_times_glendale,
+  el_monte = adj_event_times_el_monte,
+  little_armenia = adj_event_times_little_armenia,
+  signal_hill = adj_event_times_signal_hill
+)
+
+# Likelihood Ratio Test (Gamma vs. Exponential)
+likelihood_ratio_test <- function(event_times, community_name) {
+  interarrival_times <- diff(event_times)
+  
+  gamma_fit <- fitdist(interarrival_times, "gamma")
+  exp_fit <- fitdist(interarrival_times, "exp")
+  
+  loglik_gamma <- sum(dgamma(interarrival_times, shape = gamma_fit$estimate["shape"],
+                             rate = gamma_fit$estimate["rate"], log = TRUE))
+  
+  loglik_exp <- sum(dexp(interarrival_times, rate = exp_fit$estimate["rate"], log = TRUE))
+  
+  LR_statistic <- -2 * (loglik_exp - loglik_gamma)
+  p_value <- pchisq(LR_statistic, df = 1, lower.tail = FALSE)
+  
+  cat("\n=== Likelihood Ratio Test for Community:", community_name, "===\n")
+  cat("Log-likelihood (Gamma):", loglik_gamma, "\n")
+  cat("Log-likelihood (Exponential):", loglik_exp, "\n")
+  cat("Likelihood Ratio Statistic:", LR_statistic, "\n")
+  cat("P-value:", p_value, "\n")
+}
+
+# KS Test for Gamma fit
+ks_gamma_test <- function(event_times, community_name) {
+  inter_event_times <- diff(event_times)
+  
+  gamma_fit <- fitdist(inter_event_times, "gamma", method = "mle")
+  
+  shape <- gamma_fit$estimate["shape"]
+  rate <- gamma_fit$estimate["rate"]
+  
+  ks_test <- ks.test(inter_event_times, "pgamma", shape = shape, rate = rate)
+  
+  cat("\n=== KS Gamma Test for Community:", community_name, "===\n")
+  print(ks_test)
+}
+
+# KS Test for Exponential fit
+ks_exp_test <- function(event_times, community_name) {
+  inter_event_times <- diff(event_times)
+  
+  exp_fit <- fitdist(inter_event_times, "exp", method = "mle")
+  
+  rate <- exp_fit$estimate["rate"]
+  
+  ks_test <- ks.test(inter_event_times, "pexp", rate = rate)
+  
+  cat("\n=== KS Exponential Test for Community:", community_name, "===\n")
+  print(ks_test)
+}
+
+# loop through communities
+for (community in names(communities)) {
+  event_times <- communities[[community]]
+  
+  likelihood_ratio_test(event_times, community)
+  ks_gamma_test(event_times, community)
+  ks_exp_test(event_times, community)
+}
+```
+
+### stelfi weekly
+
+Now, run model on the weekly death scale.
+
+```{r}
+# function for comparing weekly expected deaths vs observed deaths
+stelfi_weekly <- function(community_label, community_data, event_times, start_params) {
+  
+  # adjust event times
+  event_times_sorted <- sort(unlist(event_times))
+  event_times_unique <- unique(event_times_sorted)
+  adj_event_times <- event_times_unique + seq(0, length(event_times_unique) - 1) * 1e-5
+  
+  # fit model
+  fit <- fit_hawkes(times = adj_event_times, parameters = start_params)
+  
+  # model summary and gof plots
+  print(show_hawkes(fit))
+  print(show_hawkes_GOF(fit))
+  
+  # get parameters
+  params <- get_coefs(fit)
+  mu <- params[1]
+  alpha <- params[2]
+  beta <- params[3]
+  
+  # calculate expected deaths
+  compute_expected_deaths <- function(event_times, mu, alpha, beta) {
+    days <- max(event_times)
+    lambda_t <- numeric(days)
+    for (t in 1:days) {
+      past_events <- event_times[event_times < t]
+      lambda_t[t] <- mu + sum(alpha * exp(-beta * (t - past_events)))
+    }
+    return(lambda_t)
+  }
+  
+  # calculate expected deaths
+  expected_deaths <- compute_expected_deaths(adj_event_times, mu, alpha, beta)
+  expected_deaths <- expected_deaths[1:132] # weekly event times range
+  
+  # prepare observed weekly data
+  community_weekly <- community_data %>%
+    mutate(week = floor_date(date, unit = "week")) %>%
+    group_by(week) %>%
+    summarize(weekly_incidence = sum(incidence, na.rm = TRUE)) %>%
+    ungroup() %>%
+    filter(week > as.Date("2020-05-16") & week < as.Date("2023-01-02"))
+  
+  df_weekly <- data.frame(
+    date = community_weekly$week,
+    observed = community_weekly$weekly_incidence,
+    expected = expected_deaths
+  )
+  
+  # plot
+  plot <- ggplot(df_weekly, aes(x = date)) +
+    geom_line(aes(y = observed, color = "Observed"), linewidth = 1) +
+    geom_line(aes(y = expected, color = "Expected"), linewidth = 1) +
+    labs(title = paste("Expected vs. Observed Deaths for", community_label),
+         x = "Date", y = "Weekly Deaths") +
+    scale_color_manual(values = c("red", "black")) +
+    theme_minimal()
+  
+  return(list(
+    expected_deaths = expected_deaths,
+    adj_event_times = adj_event_times,
+    plot = plot
+  ))
+}
+
+results_weekly_sm <- stelfi_weekly("Santa Monica", santa_monica, event_times_santa_monica_weekly, 
+                                c(mu = 9, alpha = 3, beta = 10))
+results_weekly_s  <- stelfi_weekly("Silverlake", silverlake, event_times_silverlake_weekly, 
+                                c(mu = 9, alpha = 3, beta = 10))
+results_weekly_p  <- stelfi_weekly("Pomona", pomona, event_times_pomona_weekly, 
+                                c(mu = 9, alpha = 3, beta = 10))
+results_weekly_g  <- stelfi_weekly("Glendale", glendale, event_times_glendale_weekly, 
+                                c(mu = 9, alpha = 3, beta = 10))
+results_weekly_em <- stelfi_weekly("El Monte", el_monte, event_times_el_monte_weekly, 
+                                c(mu = 9, alpha = 3, beta = 10))
+results_weekly_la <- stelfi_weekly("Little Armenia", little_armenia, event_times_little_armenia_weekly, 
+                                c(mu = 9, alpha = 3, beta = 10))
+results_weekly_sh <- stelfi_weekly("Signal Hill", signal_hill, event_times_signal_hill_weekly, 
+                                c(mu = 9, alpha = 3, beta = 10))
+```
+
+```{r}
+# combine plots
+(results_weekly_sm$plot | results_weekly_s$plot | results_weekly_p$plot) / 
+  (results_weekly_g$plot | results_weekly_em$plot | results_weekly_la$plot) / 
+  (results_weekly_sh$plot)
+
+results_weekly_sm$plot
+
+(results_weekly_s$plot | results_weekly_p$plot | results_weekly_g$plot) /
+  (results_weekly_em$plot | results_weekly_la$plot | results_weekly_sh$plot)
+```
+
+RMSE & MAE
+
+```{r}
+# observed deaths
+observed_deaths_santa_monica_weekly <- santa_monica_weekly$weekly_incidence
+observed_deaths_silverlake_weekly <- silverlake_weekly$weekly_incidence
+observed_deaths_pomona_weekly <- pomona_weekly$weekly_incidence
+observed_deaths_glendale_weekly <- glendale_weekly$weekly_incidence
+observed_deaths_el_monte_weekly <- el_monte_weekly$weekly_incidence
+observed_deaths_little_armenia_weekly <- little_armenia_weekly$weekly_incidence
+observed_deaths_signal_hill_weekly <- signal_hill_weekly$weekly_incidence
+
+# expected/predicted deaths
+expected_deaths_santa_monica_weekly <- results_weekly_sm$expected_deaths
+expected_deaths_silverlake_weekly <- results_weekly_s$expected_deaths
+expected_deaths_pomona_weekly <- results_weekly_p$expected_deaths
+expected_deaths_glendale_weekly <- results_weekly_g$expected_deaths
+expected_deaths_el_monte_weekly <- results_weekly_em$expected_deaths
+expected_deaths_little_armenia_weekly <- results_weekly_la$expected_deaths
+expected_deaths_signal_hill_weekly <- results_weekly_sh$expected_deaths
+
+
+observed_deaths_weekly <- list(
+  santa_monica = observed_deaths_santa_monica_weekly,
+  silverlake = observed_deaths_silverlake_weekly,
+  pomona = observed_deaths_pomona_weekly,
+  glendale = observed_deaths_glendale_weekly,
+  el_monte = observed_deaths_el_monte_weekly,
+  little_armenia = observed_deaths_little_armenia_weekly,
+  signal_hill = observed_deaths_signal_hill_weekly
+)
+
+expected_deaths_weekly <- list(
+  santa_monica = expected_deaths_santa_monica_weekly,
+  silverlake = expected_deaths_silverlake_weekly,
+  pomona = expected_deaths_pomona_weekly,
+  glendale = expected_deaths_glendale_weekly,
+  el_monte = expected_deaths_el_monte_weekly,
+  little_armenia = expected_deaths_little_armenia_weekly,
+  signal_hill = expected_deaths_signal_hill_weekly
+)
+
+# calculate RMSE
+calculate_rmse_weekly <- function(observed, expected) {
+  sqrt(mean((observed - expected)^2, na.rm = TRUE))
+}
+rmse_values <- sapply(names(observed_deaths_weekly), function(community) {
+  calculate_rmse_weekly(observed_deaths_weekly[[community]], 
+                        expected_deaths_weekly[[community]])
+})
+rmse_weekly_results <- data.frame(rmse = rmse_values)
+
+print(rmse_weekly_results)
+
+# calculate MAE
+calculate_mae_weekly <- function(observed, expected) {
+  mean(abs(observed - expected), na.rm = TRUE)
+}
+mae_values <- sapply(names(observed_deaths_weekly), function(community) {
+  calculate_mae_weekly(observed_deaths_weekly[[community]], 
+                       expected_deaths_weekly[[community]])
+})
+mae_weekly_fit <- data.frame(mae = mae_values)
+
+print(mae_weekly_fit)
+```
+
+### Likelihood ratio test: Gamma vs Exponential distribution
+
+- $H_0$: Reject the null hypothesis that the data follows an exponential distribution. The gamma model (with $alpha \neq 1$ fits significantly better.
+- $H_a$: Fail to reject the null hypothesis. The simpler exponential model is enough.
+
+1. If LRT rejects null hypothesis, run KS Gamma test.
+2. If LRT does not reject null hypothesis, run KS Exponential test.
+
+```{r}
+# communities
+communities <- list(
+  santa_monica = adj_event_times_santa_monica_weekly,
+  silverlake = adj_event_times_silverlake_weekly,
+  pomona = adj_event_times_pomona_weekly,
+  glendale = adj_event_times_glendale_weekly,
+  el_monte = adj_event_times_el_monte_weekly,
+  little_armenia = adj_event_times_little_armenia_weekly,
+  signal_hill = adj_event_times_signal_hill_weekly
+)
+
+# Likelihood Ratio Test (Gamma vs. Exponential)
+likelihood_ratio_test <- function(event_times, community_name) {
+  interarrival_times <- diff(event_times)
+  
+  gamma_fit <- fitdist(interarrival_times, "gamma")
+  exp_fit <- fitdist(interarrival_times, "exp")
+  
+  loglik_gamma <- sum(dgamma(interarrival_times, shape = gamma_fit$estimate["shape"],
+                             rate = gamma_fit$estimate["rate"], log = TRUE))
+  
+  loglik_exp <- sum(dexp(interarrival_times, rate = exp_fit$estimate["rate"], log = TRUE))
+  
+  LR_statistic <- -2 * (loglik_exp - loglik_gamma)
+  p_value <- pchisq(LR_statistic, df = 1, lower.tail = FALSE)
+  
+  cat("\n=== Likelihood Ratio Test for Community:", community_name, "===\n")
+  cat("Log-likelihood (Gamma):", loglik_gamma, "\n")
+  cat("Log-likelihood (Exponential):", loglik_exp, "\n")
+  cat("Likelihood Ratio Statistic:", LR_statistic, "\n")
+  cat("P-value:", p_value, "\n")
+}
+
+# KS Test for Gamma fit
+ks_gamma_test <- function(event_times, community_name) {
+  inter_event_times <- diff(event_times)
+  
+  gamma_fit <- fitdist(inter_event_times, "gamma", method = "mle")
+  
+  shape <- gamma_fit$estimate["shape"]
+  rate <- gamma_fit$estimate["rate"]
+  
+  ks_test <- ks.test(inter_event_times, "pgamma", shape = shape, rate = rate)
+  
+  cat("\n=== KS Gamma Test for Community:", community_name, "===\n")
+  print(ks_test)
+}
+
+# KS Test for Exponential fit
+ks_exp_test <- function(event_times, community_name) {
+  inter_event_times <- diff(event_times)
+  
+  exp_fit <- fitdist(inter_event_times, "exp", method = "mle")
+  
+  rate <- exp_fit$estimate["rate"]
+  
+  ks_test <- ks.test(inter_event_times, "pexp", rate = rate)
+  
+  cat("\n=== KS Exponential Test for Community:", community_name, "===\n")
+  print(ks_test)
+}
+
+# loop through communities
+for (community in names(communities)) {
+  event_times <- communities[[community]]
+  
+  likelihood_ratio_test(event_times, community)
+  ks_gamma_test(event_times, community)
+  ks_exp_test(event_times, community)
+}
+```
+
