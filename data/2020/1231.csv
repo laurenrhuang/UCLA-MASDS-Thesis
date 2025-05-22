@@ -1,0 +1,342 @@
+date,name,Cases,Case Rate,Deaths,Death Rate,population
+"D1231",City of Agoura Hills,593,2840,8,38,20883
+"D1231",City of Alhambra,4241,4890,58,67,86724
+"D1231",City of Arcadia,1658,2871,52,90,57754
+"D1231",City of Artesia,1282,7633,27,161,16795
+"D1231",City of Avalon,6,155,0,0,3869
+"D1231",City of Azusa,4183,8359,53,106,50040
+"D1231",City of Baldwin Park,8605,11209,135,176,76769
+"D1231",City of Bell,4400,12111,59,162,36332
+"D1231",City of Bell Gardens,5606,13016,44,102,43071
+"D1231",City of Bellflower,6934,8920,91,117,77735
+"D1231",City of Beverly Hills,1661,4812,14,41,34520
+"D1231",City of Bradbury,32,2993,0,0,1069
+"D1231",City of Burbank,5285,4931,121,113,107180
+"D1231",City of Calabasas,719,2956,13,53,24323
+"D1231",City of Carson,5505,5866,85,91,93846
+"D1231",City of Cerritos,1766,3527,21,42,50067
+"D1231",City of Claremont,1450,3974,20,55,36484
+"D1231",City of Commerce,1710,13084,18,138,13069
+"D1231",City of Compton,10959,10970,111,111,99904
+"D1231",City of Covina,4230,8627,69,141,49032
+"D1231",City of Cudahy,3122,12823,24,99,24347
+"D1231",City of Culver City,1281,3213,41,103,39865
+"D1231",City of Diamond Bar,1966,3418,21,37,57515
+"D1231",City of Downey,11800,10327,120,105,114263
+"D1231",City of Duarte,1446,6568,45,204,22016
+"D1231",City of El Monte,11507,9812,230,196,117269
+"D1231",City of El Segundo,390,2323,1,6,16786
+"D1231",City of Gardena,3851,6281,83,135,61310
+"D1231",City of Glendale,11483,5561,269,130,206493
+"D1231",City of Glendora,3077,5832,92,174,52764
+"D1231",City of Hawaiian Gardens,1465,9982,4,27,14676
+"D1231",City of Hawthorne,6127,6901,83,93,88787
+"D1231",City of Hermosa Beach,592,3010,6,31,19670
+"D1231",City of Hidden Hills,43,2275,0,0,1890
+"D1231",City of Huntington Park,7589,12758,80,134,59484
+"D1231",City of Industry,106,24256,3,686,437
+"D1231",City of Inglewood,8328,7332,138,121,113582
+"D1231",City of Irwindale,179,12269,2,137,1459
+"D1231",City of La Canada Flintridge,472,2281,7,34,20693
+"D1231",City of La Habra Heights,88,1613,1,18,5455
+"D1231",City of La Mirada,2725,5494,41,83,49599
+"D1231",City of La Puente,4578,11249,45,111,40697
+"D1231",City of La Verne,1754,5270,23,69,33282
+"D1231",City of Lakewood,4303,5355,25,31,80362
+"D1231",City of Lancaster,13971,8647,118,73,161570
+"D1231",City of Lawndale,2088,6212,19,57,33614
+"D1231",City of Lomita,766,3695,9,43,20729
+"D1231",City of Lynwood,8901,12354,134,186,72047
+"D1231",City of Malibu,223,1721,5,39,12961
+"D1231",City of Manhattan Beach,813,2258,4,11,35999
+"D1231",City of Maywood,3559,12689,50,178,28049
+"D1231",City of Monrovia,1999,5152,43,111,38800
+"D1231",City of Montebello,6921,10751,83,129,64375
+"D1231",City of Monterey Park,3001,4820,87,140,62262
+"D1231",City of Norwalk,10183,9462,136,126,107622
+"D1231",City of Palmdale,15579,9800,123,77,158968
+"D1231",City of Palos Verdes Estates,229,1694,2,15,13522
+"D1231",City of Paramount,6658,11884,58,104,56023
+"D1231",City of Pico Rivera,7515,11690,106,165,64284
+"D1231",City of Pomona,16770,10755,221,142,155931
+"D1231",City of Rancho Palos Verdes,791,1850,25,58,42747
+"D1231",City of Redondo Beach,1587,2310,15,22,68697
+"D1231",City of Rolling Hills,26,1340,0,0,1940
+"D1231",City of Rolling Hills Estates,147,1812,5,62,8113
+"D1231",City of Rosemead,2923,5281,55,99,55350
+"D1231",City of San Dimas,1920,5563,30,87,34516
+"D1231",City of San Fernando,3260,13246,32,130,24612
+"D1231",City of San Gabriel,1954,4771,116,283,40954
+"D1231",City of San Marino,247,1860,6,45,13277
+"D1231",City of Santa Clarita,12130,5503,109,49,220424
+"D1231",City of Santa Fe Springs,1789,9742,20,109,18364
+"D1231",City of Santa Monica,2806,3035,69,75,92446
+"D1231",City of Sierra Madre,301,2739,6,55,10989
+"D1231",City of Signal Hill,710,6018,5,42,11797
+"D1231",City of South El Monte,2299,11008,21,101,20885
+"D1231",City of South Gate,12287,12518,101,103,98155
+"D1231",City of South Pasadena,853,3274,30,115,26053
+"D1231",City of Temple City,1519,4167,70,192,36455
+"D1231",City of Torrance,4056,2717,95,64,149268
+"D1231",City of Vernon,65,31100,1,478,209
+"D1231",City of Walnut,1086,3557,12,39,30532
+"D1231",City of West Covina,8423,7782,95,88,108235
+"D1231",City of West Hollywood,1445,3911,14,38,36951
+"D1231",City of Westlake Village,76,909,0,0,8360
+"D1231",City of Whittier,7342,8397,103,118,87432
+"D1231",Los Angeles,319519,7900,4341,107
+"D1231",Los Angeles - Adams-Normandie,766,9339,6,73,8202
+"D1231",Los Angeles - Alsace,1016,8164,4,32,12445
+"D1231",Los Angeles - Angeles National Forest,4,10000,0,0,40
+"D1231",Los Angeles - Angelino Heights,178,7114,1,40,2502
+"D1231",Los Angeles - Arleta,4492,13070,40,116,34370
+"D1231",Los Angeles - Atwater Village,802,5468,9,61,14666
+"D1231",Los Angeles - Baldwin Hills,1725,5542,32,103,31125
+"D1231",Los Angeles - Bel Air,239,2835,0,0,8429
+"D1231",Los Angeles - Beverly Crest,408,3257,4,32,12525
+"D1231",Los Angeles - Beverlywood,530,4023,1,8,13173
+"D1231",Los Angeles - Boyle Heights,11856,13646,122,140,86884
+"D1231",Los Angeles - Brentwood,916,2959,5,16,30955
+"D1231",Los Angeles - Brookside,18,3098,1,172,581
+"D1231",Los Angeles - Cadillac-Corning,442,6207,3,42,7121
+"D1231",Los Angeles - Canoga Park,5788,8865,96,147,65289
+"D1231",Los Angeles - Carthay,624,4344,31,216,14363
+"D1231",Los Angeles - Central,5187,13303,52,133,38992
+"D1231",Los Angeles - Century City,361,2822,2,16,12792
+"D1231",Los Angeles - Century Palms/Cove,4055,12009,38,113,33766
+"D1231",Los Angeles - Chatsworth,2257,6090,44,119,37061
+"D1231",Los Angeles - Cheviot Hills,264,2879,3,33,9171
+"D1231",Los Angeles - Chinatown,477,5947,4,50,8021
+"D1231",Los Angeles - Cloverdale/Cochran,1037,7126,10,69,14553
+"D1231",Los Angeles - Country Club Park,968,6388,42,277,15153
+"D1231",Los Angeles - Crenshaw District,932,6739,7,51,13829
+"D1231",Los Angeles - Crestview,618,5436,27,238,11368
+"D1231",Los Angeles - Del Rey,1298,4336,10,33,29936
+"D1231",Los Angeles - Downtown,2445,8889,23,84,27507
+"D1231",Los Angeles - Eagle Rock,2337,5903,45,114,39589
+"D1231",Los Angeles - East Hollywood,2020,6897,54,184,29287
+"D1231",Los Angeles - Echo Park,858,6019,10,70,14256
+"D1231",Los Angeles - El Sereno,4098,9802,57,136,41808
+"D1231",Los Angeles - Elysian Park,325,5690,0,0,5712
+"D1231",Los Angeles - Elysian Valley,823,8092,10,98,10171
+"D1231",Los Angeles - Encino,2115,4682,28,62,45172
+"D1231",Los Angeles - Exposition,234,7035,3,90,3326
+"D1231",Los Angeles - Exposition Park,3984,8870,38,85,44917
+"D1231",Los Angeles - Faircrest Heights,127,3528,1,28,3600
+"D1231",Los Angeles - Figueroa Park Square,902,10343,11,126,8721
+"D1231",Los Angeles - Florence-Firestone,6402,13494,55,116,47445
+"D1231",Los Angeles - Glassell Park,2099,6642,19,60,31604
+"D1231",Los Angeles - Gramercy Place,788,7321,11,102,10764
+"D1231",Los Angeles - Granada Hills,3981,6841,95,163,58191
+"D1231",Los Angeles - Green Meadows,2519,11714,17,79,21505
+"D1231",Los Angeles - Hancock Park,646,3791,4,23,17039
+"D1231",Los Angeles - Harbor City,1417,4874,15,52,29070
+"D1231",Los Angeles - Harbor Gateway,2962,6794,30,69,43600
+"D1231",Los Angeles - Harbor Pines,108,4483,0,0,2409
+"D1231",Los Angeles - Harvard Heights,1612,8938,35,194,18035
+"D1231",Los Angeles - Harvard Park,4677,12329,35,92,37935
+"D1231",Los Angeles - Highland Park,3732,7712,34,70,48391
+"D1231",Los Angeles - Historic Filipinotown,1362,9820,36,260,13870
+"D1231",Los Angeles - Hollywood,3392,4970,30,44,68254
+"D1231",Los Angeles - Hollywood Hills,943,3204,12,41,29434
+"D1231",Los Angeles - Hyde Park,2236,7834,26,91,28541
+"D1231",Los Angeles - Jefferson Park,763,9451,3,37,8073
+"D1231",Los Angeles - Koreatown,3297,6378,43,83,51693
+"D1231",Los Angeles - Lafayette Square,341,7480,4,88,4559
+"D1231",Los Angeles - Lake Balboa,3417,8096,28,66,42206
+"D1231",Los Angeles - Lakeview Terrace,1537,11703,30,228,13133
+"D1231",Los Angeles - Leimert Park,970,6367,11,72,15235
+"D1231",Los Angeles - Lincoln Heights,3391,10403,91,279,32597
+"D1231",Los Angeles - Little Armenia,762,9495,57,710,8025
+"D1231",Los Angeles - Little Bangladesh,1599,5642,10,35,28343
+"D1231",Los Angeles - Little Tokyo,255,8139,3,96,3133
+"D1231",Los Angeles - Longwood,382,8875,3,70,4304
+"D1231",Los Angeles - Los Feliz,657,3041,6,28,21608
+"D1231",Los Angeles - Manchester Square,563,6596,6,70,8536
+"D1231",Los Angeles - Mandeville Canyon,81,2593,0,0,3124
+"D1231",Los Angeles - Mar Vista,1164,2741,12,28,42471
+"D1231",Los Angeles - Marina Peninsula,94,2156,1,23,4360
+"D1231",Los Angeles - Melrose,5125,6596,101,130,77696
+"D1231",Los Angeles - Mid-city,746,4963,25,166,15030
+"D1231",Los Angeles - Miracle Mile,561,3119,7,39,17985
+"D1231",Los Angeles - Mission Hills,2784,11540,73,303,24124
+"D1231",Los Angeles - Mt. Washington,1839,7616,29,120,24145
+"D1231",Los Angeles - North Hills,5965,9687,71,115,61575
+"D1231",Los Angeles - North Hollywood,12928,8538,126,83,151421
+"D1231",Los Angeles - Northridge,4607,6601,69,99,69797
+"D1231",Los Angeles - Pacific Palisades,476,2236,4,19,21291
+"D1231",Los Angeles - Pacoima,11330,14718,105,136,76979
+"D1231",Los Angeles - Palisades Highlands,88,2288,0,0,3846
+"D1231",Los Angeles - Palms,1465,3339,34,77,43877
+"D1231",Los Angeles - Panorama City,8710,11575,132,175,75250
+"D1231",Los Angeles - Park La Brea,365,2688,1,7,13580
+"D1231",Los Angeles - Pico-Union,4613,11025,112,268,41842
+"D1231",Los Angeles - Playa Del Rey,68,2128,0,0,3196
+"D1231",Los Angeles - Playa Vista,342,3124,1,9,10947
+"D1231",Los Angeles - Porter Ranch,1508,4237,14,39,35588
+"D1231",Los Angeles - Rancho Park,217,3308,0,0,6560
+"D1231",Los Angeles - Regent Square,142,5108,0,0,2780
+"D1231",Los Angeles - Reseda,7289,9514,145,189,76617
+"D1231",Los Angeles - Reseda Ranch,392,8456,1,22,4636
+"D1231",Los Angeles - Reynier Village,157,3713,0,0,4228
+"D1231",Los Angeles - San Pedro,4390,5625,51,65,78038
+"D1231",Los Angeles - Shadow Hills,238,5358,0,0,4442
+"D1231",Los Angeles - Sherman Oaks,3552,4071,42,48,87254
+"D1231",Los Angeles - Silverlake,2032,4609,54,122,44083
+"D1231",Los Angeles - South Carthay,446,4210,2,19,10595
+"D1231",Los Angeles - South Park,5053,13311,41,108,37961
+"D1231",Los Angeles - St Elmo Village,393,8573,12,262,4584
+"D1231",Los Angeles - Studio City,846,3770,26,116,22440
+"D1231",Los Angeles - Sun Valley,5850,11146,48,91,52483
+"D1231",Los Angeles - Sunland,1381,6767,33,162,20408
+"D1231",Los Angeles - Sycamore Square,23,3555,1,155,647
+"D1231",Los Angeles - Sylmar,10232,12418,123,149,82398
+"D1231",Los Angeles - Tarzana,2038,6601,45,146,30876
+"D1231",Los Angeles - Temple-Beaudry,3308,8379,44,111,39482
+"D1231",Los Angeles - Thai Town,508,5179,7,71,9809
+"D1231",Los Angeles - Toluca Lake,311,3573,4,46,8704
+"D1231",Los Angeles - Toluca Terrace,75,5743,1,77,1306
+"D1231",Los Angeles - Toluca Woods,69,3714,0,0,1858
+"D1231",Los Angeles - Tujunga,1640,5897,22,79,27810
+"D1231",Los Angeles - University Hills,166,4841,1,29,3429
+"D1231",Los Angeles - University Park,2321,8454,29,106,27456
+"D1231",Los Angeles - Valley Glen,2439,8126,29,97,30016
+"D1231",Los Angeles - Valley Village,1291,5222,35,142,24720
+"D1231",Los Angeles - Van Nuys,9619,10321,160,172,93194
+"D1231",Los Angeles - Venice,1004,2963,9,27,33885
+"D1231",Los Angeles - Vermont Knolls,1894,11012,25,145,17200
+"D1231",Los Angeles - Vermont Square,940,12276,6,78,7657
+"D1231",Los Angeles - Vermont Vista,4903,11905,40,97,41186
+"D1231",Los Angeles - Vernon Central,7502,14427,71,137,51998
+"D1231",Los Angeles - Victoria Park,685,8156,4,48,8399
+"D1231",Los Angeles - View Heights,142,3844,4,108,3694
+"D1231",Los Angeles - Watts,4957,11616,52,122,42674
+"D1231",Los Angeles - Wellington Square,362,7365,3,61,4915
+"D1231",Los Angeles - West Adams,2586,9359,65,235,27630
+"D1231",Los Angeles - West Hills,1830,4514,58,143,40545
+"D1231",Los Angeles - West Los Angeles,1449,3850,22,58,37636
+"D1231",Los Angeles - West Vernon,6642,12382,75,140,53644
+"D1231",Los Angeles - Westchester,1360,2636,23,45,51603
+"D1231",Los Angeles - Westlake,5172,8714,169,285,59355
+"D1231",Los Angeles - Westwood,1379,2549,8,15,54109
+"D1231",Los Angeles - Wholesale District,4579,12674,46,127,36129
+"D1231",Los Angeles - Wilmington,5153,9122,34,60,56487
+"D1231",Los Angeles - Wilshire Center,3259,6496,50,100,50170
+"D1231",Los Angeles - Winnetka,4233,8174,39,75,51786
+"D1231",Los Angeles - Woodland Hills,2876,4226,42,62,68055
+"D1231",Unincorporated - Acton,271,3400,4,50,7971
+"D1231",Unincorporated - Agua Dulce,137,3295,0,0,4158
+"D1231",Unincorporated - Altadena,2080,4768,30,69,43620
+"D1231",Unincorporated - Anaverde,101,6698,0,0,1508
+"D1231",Unincorporated - Angeles National Forest,19,1526,0,0,1245
+"D1231",Unincorporated - Arcadia,346,4335,5,63,7981
+"D1231",Unincorporated - Athens-Westmont,4021,9474,41,97,42442
+"D1231",Unincorporated - Athens Village,762,15561,16,327,4897
+"D1231",Unincorporated - Avocado Heights,741,10937,5,74,6775
+"D1231",Unincorporated - Azusa,1537,9653,13,82,15923
+"D1231",Unincorporated - Bassett,1732,11689,11,74,14817
+"D1231",Unincorporated - Bouquet Canyon,26,2423,1,93,1073
+"D1231",Unincorporated - Bradbury,14,12963,5,4630,108
+"D1231",Unincorporated - Canyon Country,505,6535,3,39,9310
+"D1231",Unincorporated - Castaic,2955,10868,6,22,27191
+"D1231",Unincorporated - Cerritos,46,7836,0,0,587
+"D1231",Unincorporated - Charter Oak,0,0,0,0,7728
+"D1231",Unincorporated - Claremont,35,4986,4,570,702
+"D1231",Unincorporated - Covina,1506,8954,14,83,16819
+"D1231",Unincorporated - Covina (Charter Oak),983,7479,5,38,13144
+"D1231",Unincorporated - Del Aire,195,4439,2,46,4393
+"D1231",Unincorporated - Del Rey,16,5031,0,0,318
+"D1231",Unincorporated - Del Sur,101,4182,1,41,2415
+"D1231",Unincorporated - Desert View Highlands,221,8865,2,80,2493
+"D1231",Unincorporated - Duarte,593,13392,7,158,4428
+"D1231",Unincorporated - East Covina,23,6991,1,304,329
+"D1231",Unincorporated - East La Mirada,324,6122,2,38,5292
+"D1231",Unincorporated - East Lancaster,10,8772,0,0,114
+"D1231",Unincorporated - East Los Angeles,17374,13869,182,145,125269
+"D1231",Unincorporated - East Pasadena,154,2405,2,31,6403
+"D1231",Unincorporated - East Rancho Dominguez,1845,12053,25,163,15308
+"D1231",Unincorporated - East Whittier,288,5428,0,0,5306
+"D1231",Unincorporated - El Camino Village,474,5392,6,68,8791
+"D1231",Unincorporated - El Monte,16,11034,0,0,145
+"D1231",Unincorporated - Elizabeth Lake,41,2468,0,0,1661
+"D1231",Unincorporated - Florence-Firestone,9193,14208,85,131,64705
+"D1231",Unincorporated - Franklin Canyon,1,8333,0,0,4
+"D1231",Unincorporated - Glendora,48,7273,2,303,660
+"D1231",Unincorporated - Hacienda Heights,3343,5978,40,72,55926
+"D1231",Unincorporated - Harbor Gateway,0,0,0,0,1
+"D1231",Unincorporated - Hawthorne,209,8313,1,40,2514
+"D1231",Unincorporated - Hi Vista,26,2368,0,0,1098
+"D1231",Unincorporated - Kagel/Lopez Canyons,130,9207,2,142,1412
+"D1231",Unincorporated - La Crescenta-Montrose,614,3101,4,20,19801
+"D1231",Unincorporated - La Habra Heights,11,1627,1,148,676
+"D1231",Unincorporated - La Rambla,147,7084,15,723,2075
+"D1231",Unincorporated - La Verne,104,5098,0,0,2040
+"D1231",Unincorporated - Ladera Heights,245,3465,5,71,7071
+"D1231",Unincorporated - Lake Hughes,23,3443,0,0,668
+"D1231",Unincorporated - Lake Los Angeles,998,7680,4,31,12994
+"D1231",Unincorporated - Lake Manor,78,4747,1,61,1643
+"D1231",Unincorporated - Lakewood,0,0,0,0
+"D1231",Unincorporated - Lennox,2136,9476,17,75,22542
+"D1231",Unincorporated - Leona Valley,73,4169,0,0,1751
+"D1231",Unincorporated - Littlerock,316,7859,2,50,4021
+"D1231",Unincorporated - Littlerock/Juniper Hills,72,5551,0,0,1297
+"D1231",Unincorporated - Littlerock/Pearblossom,319,8938,1,28,3569
+"D1231",Unincorporated - Llano,24,2737,0,0,877
+"D1231",Unincorporated - Marina del Rey,221,2348,0,0,9411
+"D1231",Unincorporated - Miracle Mile,0,0,0,0
+"D1231",Unincorporated - Monrovia,234,6029,1,26,3881
+"D1231",Unincorporated - Newhall,57,25909,0,0,220
+"D1231",Unincorporated - North Lancaster,88,7346,1,83,1198
+"D1231",Unincorporated - North Whittier,738,8828,13,156,8360
+"D1231",Unincorporated - Northeast San Gabriel,1056,4393,23,96,24036
+"D1231",Unincorporated - Padua Hills,6,2791,0,0
+"D1231",Unincorporated - Palmdale,62,7363,0,0,842
+"D1231",Unincorporated - Palos Verdes Peninsula,18,2899,0,0,621
+"D1231",Unincorporated - Pearblossom/Llano,66,3374,1,51,1956
+"D1231",Unincorporated - Pellissier Village,103,16640,1,162,619
+"D1231",Unincorporated - Placerita Canyon,0,0,0,0,460
+"D1231",Unincorporated - Pomona,43,2219,1,52,1938
+"D1231",Unincorporated - Quartz Hill,727,5633,15,116,12906
+"D1231",Unincorporated - Rancho Dominguez,243,9132,1,38,2661
+"D1231",Unincorporated - Roosevelt,53,5693,0,0,931
+"D1231",Unincorporated - Rosewood,87,6765,2,156,1286
+"D1231",Unincorporated - Rosewood/East Gardena,101,8466,2,168,1193
+"D1231",Unincorporated - Rosewood/West Rancho Dominguez,308,9164,3,89,3361
+"D1231",Unincorporated - Rowland Heights,2274,4457,29,57,51022
+"D1231",Unincorporated - San Clemente Island,0,0,0,0
+"D1231",Unincorporated - San Francisquito Canyon/Bouquet Canyon,7,816,0,0
+"D1231",Unincorporated - San Jose Hills,2367,11706,25,124,20221
+"D1231",Unincorporated - San Pasqual,25,1229,0,0,2035
+"D1231",Unincorporated - Sand Canyon,10,3247,0,0,308
+"D1231",Unincorporated - Santa Catalina Island,90,33708,1,375,267
+"D1231",Unincorporated - Santa Monica Mountains,308,1654,1,5,18621
+"D1231",Unincorporated - Saugus,90,58065,0,0,155
+"D1231",Unincorporated - Saugus/Canyon Country,26,7303,0,0,356
+"D1231",Unincorporated - South Antelope Valley,13,2857,0,0,455
+"D1231",Unincorporated - South El Monte,233,12981,1,56,1795
+"D1231",Unincorporated - South San Gabriel,584,6600,30,339,8848
+"D1231",Unincorporated - South Whittier,5611,9475,62,105,59222
+"D1231",Unincorporated - Southeast Antelope Valley,55,7042,0,0,781
+"D1231",Unincorporated - Stevenson Ranch,626,2986,3,14,20966
+"D1231",Unincorporated - Sun Village,580,9609,5,83,6036
+"D1231",Unincorporated - Sunrise Village,140,10802,0,0,1296
+"D1231",Unincorporated - Twin Lakes/Oat Mountain,53,3197,2,121,1658
+"D1231",Unincorporated - Val Verde,188,5681,1,30,3309
+"D1231",Unincorporated - Valencia,105,3418,0,0,3072
+"D1231",Unincorporated - Valinda,2439,10436,23,98,23371
+"D1231",Unincorporated - View Park/Windsor Hills,439,3773,7,60,11635
+"D1231",Unincorporated - Walnut Park,1969,12197,22,136,16143
+"D1231",Unincorporated - West Antelope Valley,19,1257,0,0,1511
+"D1231",Unincorporated - West Carson,1245,5637,60,272,22086
+"D1231",Unincorporated - West Chatsworth,1,8333,0,0
+"D1231",Unincorporated - West LA,139,14601,6,630,952
+"D1231",Unincorporated - West Puente Valley,1147,11662,7,71,9835
+"D1231",Unincorporated - West Rancho Dominguez,101,7432,4,294,1359
+"D1231",Unincorporated - West Whittier/Los Nietos,2925,10864,37,137,26925
+"D1231",Unincorporated - Westfield/Academy Hills,19,1462,0,0,1300
+"D1231",Unincorporated - Westhills,30,3576,0,0,839
+"D1231",Unincorporated - White Fence Farms,169,4589,0,0,3683
+"D1231",Unincorporated - Whittier,197,5206,4,106,3784
+"D1231",Unincorporated - Whittier Narrows,8,66667,1,8333,12
+"D1231",Unincorporated - Willowbrook,3992,11434,38,109,34913
+"D1231",Unincorporated - Wiseburn,329,5459,3,50,6027

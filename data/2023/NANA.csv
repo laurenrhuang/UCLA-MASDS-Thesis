@@ -1,0 +1,342 @@
+date,name,Cases,Case Rate,Deaths,Death Rate,population
+"DNANA",City of Agoura Hills,6299,30163,26,125,20883
+"DNANA",City of Alhambra,25171,29024,294,339,86724
+"DNANA",City of Arcadia,13436,23264,211,365,57754
+"DNANA",City of Artesia,5942,35380,94,560,16795
+"DNANA",City of Avalon,287,7418,3,78,3869
+"DNANA",City of Azusa,17390,34752,172,344,50040
+"DNANA",City of Baldwin Park,29414,38315,415,541,76769
+"DNANA",City of Bell,16891,46491,155,427,36332
+"DNANA",City of Bell Gardens,17026,39530,150,348,43071
+"DNANA",City of Bellflower,30489,39222,297,382,77735
+"DNANA",City of Beverly Hills,11441,33143,55,159,34520
+"DNANA",City of Bradbury,71,6642,0,0,1069
+"DNANA",City of Burbank,32471,30296,367,342,107180
+"DNANA",City of Calabasas,5769,23718,46,189,24323
+"DNANA",City of Carson,34585,36853,356,379,93846
+"DNANA",City of Cerritos,13151,26267,99,198,50067
+"DNANA",City of Claremont,10230,28040,110,302,36484
+"DNANA",City of Commerce,5813,44479,55,421,13069
+"DNANA",City of Compton,39908,39946,343,343,99904
+"DNANA",City of Covina,20031,40853,248,506,49032
+"DNANA",City of Cudahy,12150,49903,92,378,24347
+"DNANA",City of Culver City,11697,29342,159,399,39865
+"DNANA",City of Diamond Bar,13470,23420,122,212,57515
+"DNANA",City of Downey,46368,40580,427,374,114263
+"DNANA",City of Duarte,7399,33607,130,590,22016
+"DNANA",City of El Monte,42385,36143,591,504,117269
+"DNANA",City of El Segundo,4021,23954,19,113,16786
+"DNANA",City of Gardena,21663,35334,287,468,61310
+"DNANA",City of Glendale,59682,28903,1006,487,206493
+"DNANA",City of Glendora,14876,28193,229,434,52764
+"DNANA",City of Hawaiian Gardens,4961,33803,35,238,14676
+"DNANA",City of Hawthorne,29296,32996,291,328,88787
+"DNANA",City of Hermosa Beach,4674,23762,17,86,19670
+"DNANA",City of Hidden Hills,380,20106,2,106,1890
+"DNANA",City of Huntington Park,26174,44002,229,385,59484
+"DNANA",City of Industry,996,227918,7,1602,437
+"DNANA",City of Inglewood,38356,33769,426,375,113582
+"DNANA",City of Irwindale,878,60178,13,891,1459
+"DNANA",City of La Canada Flintridge,4493,21713,27,130,20693
+"DNANA",City of La Habra Heights,210,3850,2,37,5455
+"DNANA",City of La Mirada,14078,28384,209,421,49599
+"DNANA",City of La Puente,15894,39054,171,420,40697
+"DNANA",City of La Verne,9164,27534,92,276,33282
+"DNANA",City of Lakewood,26722,33252,186,231,80362
+"DNANA",City of Lancaster,63559,39338,491,304,161570
+"DNANA",City of Lawndale,10493,31216,78,232,33614
+"DNANA",City of Lomita,6000,28945,66,318,20729
+"DNANA",City of Lynwood,30955,42965,322,447,72047
+"DNANA",City of Malibu,2848,21974,14,108,12961
+"DNANA",City of Manhattan Beach,7352,20423,33,92,35999
+"DNANA",City of Maywood,12737,45410,113,403,28049
+"DNANA",City of Monrovia,11748,30278,121,312,38800
+"DNANA",City of Montebello,25235,39200,316,491,64375
+"DNANA",City of Monterey Park,17292,27773,288,463,62262
+"DNANA",City of Norwalk,42574,39559,533,495,107622
+"DNANA",City of Palmdale,66407,41774,486,306,158968
+"DNANA",City of Palos Verdes Estates,2236,16536,15,111,13522
+"DNANA",City of Paramount,22540,40233,218,389,56023
+"DNANA",City of Pico Rivera,27853,43328,361,562,64284
+"DNANA",City of Pomona,64985,41675,635,407,155931
+"DNANA",City of Rancho Palos Verdes,7626,17840,92,215,42747
+"DNANA",City of Redondo Beach,15367,22369,85,124,68697
+"DNANA",City of Rolling Hills,293,15103,3,155,1940
+"DNANA",City of Rolling Hills Estates,1512,18637,11,136,8113
+"DNANA",City of Rosemead,15088,27259,214,387,55350
+"DNANA",City of San Dimas,11011,31901,148,429,34516
+"DNANA",City of San Fernando,12703,51613,85,345,24612
+"DNANA",City of San Gabriel,11303,27599,279,681,40954
+"DNANA",City of San Marino,2375,17888,17,128,13277
+"DNANA",City of Santa Clarita,72758,33008,446,202,220424
+"DNANA",City of Santa Fe Springs,7812,42540,63,343,18364
+"DNANA",City of Santa Monica,26110,28244,295,319,92446
+"DNANA",City of Sierra Madre,2370,21567,26,237,10989
+"DNANA",City of Signal Hill,4051,34339,20,170,11797
+"DNANA",City of South El Monte,8357,40014,92,441,20885
+"DNANA",City of South Gate,46908,47790,344,350,98155
+"DNANA",City of South Pasadena,6251,23993,68,261,26053
+"DNANA",City of Temple City,10590,29050,180,494,36455
+"DNANA",City of Torrance,33908,22716,359,241,149268
+"DNANA",City of Vernon,357,170813,0,0,209
+"DNANA",City of Walnut,7474,24479,58,190,30532
+"DNANA",City of West Covina,39163,36183,408,377,108235
+"DNANA",City of West Hollywood,11175,30243,65,176,36951
+"DNANA",City of Westlake Village,443,5299,3,36,8360
+"DNANA",City of Whittier,31049,35512,372,425,87432
+"DNANA",Los Angeles,1514956,37456,14017,347
+"DNANA",Los Angeles - Adams-Normandie,3179,38759,20,244,8202
+"DNANA",Los Angeles - Alsace,4476,35966,24,193,12445
+"DNANA",Los Angeles - Angeles National Forest,0,0,0,0,40
+"DNANA",Los Angeles - Angelino Heights,842,33653,8,320,2502
+"DNANA",Los Angeles - Arleta,16817,48929,142,413,34370
+"DNANA",Los Angeles - Atwater Village,5035,34331,40,273,14666
+"DNANA",Los Angeles - Baldwin Hills,10137,32569,124,398,31125
+"DNANA",Los Angeles - Bel Air,2416,28663,9,107,8429
+"DNANA",Los Angeles - Beverly Crest,3298,26331,10,80,12525
+"DNANA",Los Angeles - Beverlywood,4180,31732,7,53,13173
+"DNANA",Los Angeles - Boyle Heights,40196,46264,397,457,86884
+"DNANA",Los Angeles - Brentwood,8304,26826,35,113,30955
+"DNANA",Los Angeles - Brookside,153,26334,2,344,581
+"DNANA",Los Angeles - Cadillac-Corning,2280,32018,16,225,7121
+"DNANA",Los Angeles - Canoga Park,25146,38515,225,345,65289
+"DNANA",Los Angeles - Carthay,4325,30112,100,696,14363
+"DNANA",Los Angeles - Central,16970,43522,178,457,38992
+"DNANA",Los Angeles - Century City,3705,28963,20,156,12792
+"DNANA",Los Angeles - Century Palms/Cove,16200,47977,140,415,33766
+"DNANA",Los Angeles - Chatsworth,12842,34651,128,345,37061
+"DNANA",Los Angeles - Cheviot Hills,2522,27500,18,196,9171
+"DNANA",Los Angeles - Chinatown,2881,35918,27,337,8021
+"DNANA",Los Angeles - Cloverdale/Cochran,5280,36281,36,247,14553
+"DNANA",Los Angeles - Country Club Park,4882,32218,104,686,15153
+"DNANA",Los Angeles - Crenshaw District,5292,38267,49,354,13829
+"DNANA",Los Angeles - Crestview,3908,34377,59,519,11368
+"DNANA",Los Angeles - Del Rey,8340,27859,48,160,29936
+"DNANA",Los Angeles - Downtown,16031,58280,86,313,27507
+"DNANA",Los Angeles - Eagle Rock,13644,34464,173,437,39589
+"DNANA",Los Angeles - East Hollywood,9471,32339,178,608,29287
+"DNANA",Los Angeles - Echo Park,4474,31383,30,210,14256
+"DNANA",Los Angeles - El Sereno,16847,40296,155,371,41808
+"DNANA",Los Angeles - Elysian Park,1829,32020,6,105,5712
+"DNANA",Los Angeles - Elysian Valley,3553,34933,35,344,10171
+"DNANA",Los Angeles - Encino,15107,33443,103,228,45172
+"DNANA",Los Angeles - Exposition,1265,38034,10,301,3326
+"DNANA",Los Angeles - Exposition Park,18149,40406,111,247,44917
+"DNANA",Los Angeles - Faircrest Heights,1250,34722,9,250,3600
+"DNANA",Los Angeles - Figueroa Park Square,3771,43240,42,482,8721
+"DNANA",Los Angeles - Florence-Firestone,22769,47990,167,352,47445
+"DNANA",Los Angeles - Glassell Park,10930,34584,81,256,31604
+"DNANA",Los Angeles - Gramercy Place,4124,38313,47,437,10764
+"DNANA",Los Angeles - Granada Hills,21392,36762,284,488,58191
+"DNANA",Los Angeles - Green Meadows,10004,46519,70,326,21505
+"DNANA",Los Angeles - Hancock Park,4690,27525,19,112,17039
+"DNANA",Los Angeles - Harbor City,9335,32112,61,210,29070
+"DNANA",Los Angeles - Harbor Gateway,15579,35732,115,264,43600
+"DNANA",Los Angeles - Harbor Pines,642,26650,5,208,2409
+"DNANA",Los Angeles - Harvard Heights,6135,34017,82,455,18035
+"DNANA",Los Angeles - Harvard Park,17913,47220,143,377,37935
+"DNANA",Los Angeles - Highland Park,17095,35327,153,316,48391
+"DNANA",Los Angeles - Historic Filipinotown,5488,39567,101,728,13870
+"DNANA",Los Angeles - Hollywood,21520,31529,128,188,68254
+"DNANA",Los Angeles - Hollywood Hills,7604,25834,35,119,29434
+"DNANA",Los Angeles - Hyde Park,11836,41470,131,459,28541
+"DNANA",Los Angeles - Jefferson Park,3130,38771,24,297,8073
+"DNANA",Los Angeles - Koreatown,16142,31227,159,308,51693
+"DNANA",Los Angeles - Lafayette Square,1586,34788,12,263,4559
+"DNANA",Los Angeles - Lake Balboa,16187,38352,105,249,42206
+"DNANA",Los Angeles - Lakeview Terrace,6112,46539,54,411,13133
+"DNANA",Los Angeles - Leimert Park,5727,37591,40,263,15235
+"DNANA",Los Angeles - Lincoln Heights,12727,39043,243,745,32597
+"DNANA",Los Angeles - Little Armenia,3035,37819,114,1421,8025
+"DNANA",Los Angeles - Little Bangladesh,8627,30438,41,145,28343
+"DNANA",Los Angeles - Little Tokyo,1450,46282,18,575,3133
+"DNANA",Los Angeles - Longwood,1770,41125,18,418,4304
+"DNANA",Los Angeles - Los Feliz,6352,29397,95,440,21608
+"DNANA",Los Angeles - Manchester Square,3210,37605,24,281,8536
+"DNANA",Los Angeles - Mandeville Canyon,892,28553,2,64,3124
+"DNANA",Los Angeles - Mar Vista,10836,25514,60,141,42471
+"DNANA",Los Angeles - Marina Peninsula,957,21950,5,115,4360
+"DNANA",Los Angeles - Melrose,26084,33572,282,363,77696
+"DNANA",Los Angeles - Mid-city,4452,29621,32,213,15030
+"DNANA",Los Angeles - Miracle Mile,4885,27162,25,139,17985
+"DNANA",Los Angeles - Mission Hills,11839,49076,169,701,24124
+"DNANA",Los Angeles - Mt. Washington,8176,33862,82,340,24145
+"DNANA",Los Angeles - North Hills,25168,40874,212,344,61575
+"DNANA",Los Angeles - North Hollywood,58814,38841,536,354,151421
+"DNANA",Los Angeles - Northridge,25456,36471,237,340,69797
+"DNANA",Los Angeles - Pacific Palisades,4990,23437,22,103,21291
+"DNANA",Los Angeles - Pacoima,38694,50266,298,387,76979
+"DNANA",Los Angeles - Palisades Highlands,917,23843,2,52,3846
+"DNANA",Los Angeles - Palms,11902,27126,84,191,43877
+"DNANA",Los Angeles - Panorama City,33378,44356,353,469,75250
+"DNANA",Los Angeles - Park La Brea,3226,23756,3,22,13580
+"DNANA",Los Angeles - Pico-Union,16270,38884,305,729,41842
+"DNANA",Los Angeles - Playa Del Rey,592,18523,5,156,3196
+"DNANA",Los Angeles - Playa Vista,3381,30885,16,146,10947
+"DNANA",Los Angeles - Porter Ranch,10458,29386,72,202,35588
+"DNANA",Los Angeles - Rancho Park,2228,33963,2,30,6560
+"DNANA",Los Angeles - Regent Square,873,31403,4,144,2780
+"DNANA",Los Angeles - Reseda,31882,41612,423,552,76617
+"DNANA",Los Angeles - Reseda Ranch,1783,38460,8,173,4636
+"DNANA",Los Angeles - Reynier Village,1171,27696,3,71,4228
+"DNANA",Los Angeles - San Pedro,25994,33309,199,255,78038
+"DNANA",Los Angeles - Shadow Hills,1315,29604,10,225,4442
+"DNANA",Los Angeles - Sherman Oaks,27494,31510,180,206,87254
+"DNANA",Los Angeles - Silverlake,13168,29871,106,240,44083
+"DNANA",Los Angeles - South Carthay,3240,30580,42,396,10595
+"DNANA",Los Angeles - South Park,16830,44335,140,369,37961
+"DNANA",Los Angeles - St Elmo Village,1867,40729,50,1091,4584
+"DNANA",Los Angeles - Studio City,6982,31114,68,303,22440
+"DNANA",Los Angeles - Sun Valley,23112,44037,220,419,52483
+"DNANA",Los Angeles - Sunland,6876,33693,94,461,20408
+"DNANA",Los Angeles - Sycamore Square,210,32457,2,309,647
+"DNANA",Los Angeles - Sylmar,41945,50905,337,409,82398
+"DNANA",Los Angeles - Tarzana,10494,33988,118,382,30876
+"DNANA",Los Angeles - Temple-Beaudry,13459,34089,141,357,39482
+"DNANA",Los Angeles - Thai Town,2792,28464,41,418,9809
+"DNANA",Los Angeles - Toluca Lake,2540,29182,13,149,8704
+"DNANA",Los Angeles - Toluca Terrace,526,40276,11,842,1306
+"DNANA",Los Angeles - Toluca Woods,473,25457,3,161,1858
+"DNANA",Los Angeles - Tujunga,8940,32147,111,399,27810
+"DNANA",Los Angeles - University Hills,920,26830,3,87,3429
+"DNANA",Los Angeles - University Park,11573,42151,79,288,27456
+"DNANA",Los Angeles - Valley Glen,11150,37147,103,343,30016
+"DNANA",Los Angeles - Valley Village,8506,34409,104,421,24720
+"DNANA",Los Angeles - Van Nuys,37477,40214,453,486,93194
+"DNANA",Los Angeles - Venice,9108,26879,37,109,33885
+"DNANA",Los Angeles - Vermont Knolls,7469,43424,81,471,17200
+"DNANA",Los Angeles - Vermont Square,3740,48844,38,496,7657
+"DNANA",Los Angeles - Vermont Vista,18580,45112,137,333,41186
+"DNANA",Los Angeles - Vernon Central,24635,47377,204,392,51998
+"DNANA",Los Angeles - Victoria Park,2803,33373,22,262,8399
+"DNANA",Los Angeles - View Heights,1105,29913,9,244,3694
+"DNANA",Los Angeles - Watts,19559,45834,147,344,42674
+"DNANA",Los Angeles - Wellington Square,1831,37253,14,285,4915
+"DNANA",Los Angeles - West Adams,10896,39435,187,677,27630
+"DNANA",Los Angeles - West Hills,12849,31691,161,397,40545
+"DNANA",Los Angeles - West Los Angeles,11486,30519,80,213,37636
+"DNANA",Los Angeles - West Vernon,24653,45957,255,475,53644
+"DNANA",Los Angeles - Westchester,13758,26661,87,169,51603
+"DNANA",Los Angeles - Westlake,20765,34984,392,660,59355
+"DNANA",Los Angeles - Westwood,16467,30433,49,91,54109
+"DNANA",Los Angeles - Wholesale District,21824,60406,165,457,36129
+"DNANA",Los Angeles - Wilmington,23564,41716,153,271,56487
+"DNANA",Los Angeles - Wilshire Center,17073,34030,156,311,50170
+"DNANA",Los Angeles - Winnetka,19830,38292,134,259,51786
+"DNANA",Los Angeles - Woodland Hills,20378,29943,146,215,68055
+"DNANA",Unincorporated - Acton,2003,25129,18,226,7971
+"DNANA",Unincorporated - Agua Dulce,985,23689,7,168,4158
+"DNANA",Unincorporated - Altadena,11548,26474,115,264,43620
+"DNANA",Unincorporated - Anaverde,419,27785,1,66,1508
+"DNANA",Unincorporated - Angeles National Forest,92,7390,1,80,1245
+"DNANA",Unincorporated - Arcadia,2213,27728,23,288,7981
+"DNANA",Unincorporated - Athens-Westmont,17449,41113,163,384,42442
+"DNANA",Unincorporated - Athens Village,2815,57484,41,837,4897
+"DNANA",Unincorporated - Avocado Heights,2718,40118,22,325,6775
+"DNANA",Unincorporated - Azusa,6349,39873,58,364,15923
+"DNANA",Unincorporated - Bassett,6162,41587,60,405,14817
+"DNANA",Unincorporated - Bouquet Canyon,203,18919,2,186,1073
+"DNANA",Unincorporated - Bradbury,131,121296,27,25000,108
+"DNANA",Unincorporated - Canyon Country,3729,48253,10,129,9310
+"DNANA",Unincorporated - Castaic,9568,35188,30,110,27191
+"DNANA",Unincorporated - Cerritos,188,32027,2,341,587
+"DNANA",Unincorporated - Charter Oak,10,50000,0,0,7728
+"DNANA",Unincorporated - Claremont,158,22507,7,997,702
+"DNANA",Unincorporated - Covina,6221,36988,64,381,16819
+"DNANA",Unincorporated - Covina (Charter Oak),5034,38299,57,434,13144
+"DNANA",Unincorporated - Del Aire,1215,27658,4,91,4393
+"DNANA",Unincorporated - Del Rey,144,45283,1,314,318
+"DNANA",Unincorporated - Del Sur,700,28986,3,124,2415
+"DNANA",Unincorporated - Desert View Highlands,953,38227,13,521,2493
+"DNANA",Unincorporated - Duarte,1989,44919,15,339,4428
+"DNANA",Unincorporated - East Covina,90,27356,1,304,329
+"DNANA",Unincorporated - East La Mirada,1637,30933,17,321,5292
+"DNANA",Unincorporated - East Lancaster,43,37719,0,0,114
+"DNANA",Unincorporated - East Los Angeles,58325,46560,579,462,125269
+"DNANA",Unincorporated - East Pasadena,429,6700,15,234,6403
+"DNANA",Unincorporated - East Rancho Dominguez,6299,41148,68,444,15308
+"DNANA",Unincorporated - East Whittier,1425,26856,11,207,5306
+"DNANA",Unincorporated - El Camino Village,2737,31134,19,216,8791
+"DNANA",Unincorporated - El Monte,0,0,0,0,145
+"DNANA",Unincorporated - Elizabeth Lake,286,17219,4,241,1661
+"DNANA",Unincorporated - Florence-Firestone,30277,46792,281,434,64705
+"DNANA",Unincorporated - Franklin Canyon,1,8333,0,0,4
+"DNANA",Unincorporated - Glendora,197,29848,5,758,660
+"DNANA",Unincorporated - Hacienda Heights,16474,29457,147,263,55926
+"DNANA",Unincorporated - Harbor Gateway,4,400000,0,0,1
+"DNANA",Unincorporated - Hawthorne,761,30270,6,239,2514
+"DNANA",Unincorporated - Hi Vista,170,15483,2,182,1098
+"DNANA",Unincorporated - Kagel/Lopez Canyons,318,22521,2,142,1412
+"DNANA",Unincorporated - La Crescenta-Montrose,4432,22383,34,172,19801
+"DNANA",Unincorporated - La Habra Heights,21,3107,1,148,676
+"DNANA",Unincorporated - La Rambla,899,43325,30,1446,2075
+"DNANA",Unincorporated - La Verne,657,32206,2,98,2040
+"DNANA",Unincorporated - Ladera Heights,2042,28879,18,255,7071
+"DNANA",Unincorporated - Lake Hughes,203,30389,2,299,668
+"DNANA",Unincorporated - Lake Los Angeles,4066,31291,28,215,12994
+"DNANA",Unincorporated - Lake Manor,458,27876,2,122,1643
+"DNANA",Unincorporated - Lakewood,27,23684,0,0
+"DNANA",Unincorporated - Lennox,7615,33781,73,324,22542
+"DNANA",Unincorporated - Leona Valley,311,17761,4,228,1751
+"DNANA",Unincorporated - Littlerock,1407,34991,11,274,4021
+"DNANA",Unincorporated - Littlerock/Juniper Hills,362,27911,5,386,1297
+"DNANA",Unincorporated - Littlerock/Pearblossom,1323,37069,14,392,3569
+"DNANA",Unincorporated - Llano,107,12201,3,342,877
+"DNANA",Unincorporated - Marina del Rey,2687,28552,6,64,9411
+"DNANA",Unincorporated - Miracle Mile,0,0,0,0
+"DNANA",Unincorporated - Monrovia,1122,28910,6,155,3881
+"DNANA",Unincorporated - Newhall,105,47727,1,455,220
+"DNANA",Unincorporated - North Lancaster,509,42487,4,334,1198
+"DNANA",Unincorporated - North Whittier,3125,37380,34,407,8360
+"DNANA",Unincorporated - Northeast San Gabriel,5266,21909,48,200,24036
+"DNANA",Unincorporated - Padua Hills,37,17209,0,0
+"DNANA",Unincorporated - Palmdale,267,31710,6,713,842
+"DNANA",Unincorporated - Palos Verdes Peninsula,124,19968,0,0,621
+"DNANA",Unincorporated - Pearblossom/Llano,433,22137,4,204,1956
+"DNANA",Unincorporated - Pellissier Village,374,60420,2,323,619
+"DNANA",Unincorporated - Placerita Canyon,24,5217,0,0,460
+"DNANA",Unincorporated - Pomona,122,6295,2,103,1938
+"DNANA",Unincorporated - Quartz Hill,3899,30211,39,302,12906
+"DNANA",Unincorporated - Rancho Dominguez,1201,45133,6,225,2661
+"DNANA",Unincorporated - Roosevelt,280,30075,2,215,931
+"DNANA",Unincorporated - Rosewood,510,39658,5,389,1286
+"DNANA",Unincorporated - Rosewood/East Gardena,543,45516,6,503,1193
+"DNANA",Unincorporated - Rosewood/West Rancho Dominguez,1336,39750,23,684,3361
+"DNANA",Unincorporated - Rowland Heights,12391,24286,120,235,51022
+"DNANA",Unincorporated - San Clemente Island,0,0,0,0
+"DNANA",Unincorporated - San Francisquito Canyon/Bouquet Canyon,44,5128,0,0
+"DNANA",Unincorporated - San Jose Hills,7913,39133,101,499,20221
+"DNANA",Unincorporated - San Pasqual,90,4423,1,49,2035
+"DNANA",Unincorporated - Sand Canyon,63,20455,0,0,308
+"DNANA",Unincorporated - Santa Catalina Island,584,218727,5,1873,267
+"DNANA",Unincorporated - Santa Monica Mountains,3918,21041,29,156,18621
+"DNANA",Unincorporated - Saugus,343,221290,1,645,155
+"DNANA",Unincorporated - Saugus/Canyon Country,130,36517,1,281,356
+"DNANA",Unincorporated - South Antelope Valley,121,26593,1,220,455
+"DNANA",Unincorporated - South El Monte,758,42228,6,334,1795
+"DNANA",Unincorporated - South San Gabriel,3164,35759,64,723,8848
+"DNANA",Unincorporated - South Whittier,21529,36353,206,348,59222
+"DNANA",Unincorporated - Southeast Antelope Valley,251,32138,1,128,781
+"DNANA",Unincorporated - Stevenson Ranch,5926,28265,18,86,20966
+"DNANA",Unincorporated - Sun Village,2133,35338,20,331,6036
+"DNANA",Unincorporated - Sunrise Village,587,45293,2,154,1296
+"DNANA",Unincorporated - Twin Lakes/Oat Mountain,434,26176,5,302,1658
+"DNANA",Unincorporated - Val Verde,1213,36658,6,181,3309
+"DNANA",Unincorporated - Valencia,930,30273,2,65,3072
+"DNANA",Unincorporated - Valinda,9621,41166,102,436,23371
+"DNANA",Unincorporated - View Park/Windsor Hills,3584,30804,28,241,11635
+"DNANA",Unincorporated - Walnut Park,7421,45970,68,421,16143
+"DNANA",Unincorporated - West Antelope Valley,187,12376,2,132,1511
+"DNANA",Unincorporated - West Carson,8228,37254,189,856,22086
+"DNANA",Unincorporated - West Chatsworth,5,41667,0,0
+"DNANA",Unincorporated - West LA,868,91176,26,2731,952
+"DNANA",Unincorporated - West Puente Valley,4232,43030,40,407,9835
+"DNANA",Unincorporated - West Rancho Dominguez,494,36350,9,662,1359
+"DNANA",Unincorporated - West Whittier/Los Nietos,10725,39833,123,457,26925
+"DNANA",Unincorporated - Westfield/Academy Hills,250,19231,2,154,1300
+"DNANA",Unincorporated - Westhills,198,23600,0,0,839
+"DNANA",Unincorporated - White Fence Farms,924,25088,10,272,3683
+"DNANA",Unincorporated - Whittier,982,25951,11,291,3784
+"DNANA",Unincorporated - Whittier Narrows,76,633333,1,8333,12
+"DNANA",Unincorporated - Willowbrook,16652,47696,139,398,34913
+"DNANA",Unincorporated - Wiseburn,1894,31425,19,315,6027
