@@ -1,5 +1,5 @@
 ---
-title: "MASDS Thesis"
+title: "MASDS Thesis - MLE model with age"
 author: "Lauren Huang"
 date: "`r Sys.Date()`"
 output: pdf_document
@@ -32,7 +32,6 @@ library(foreach)
 library(sn)
 library(geosphere)
 library(spData)
-library(sf)
 library(tidyr)
 library(geodist)
 library(vegan)
@@ -411,80 +410,80 @@ log_likelihood <- function(params, event_times, age_distribution) {
 }
  
 # function that saves results to txt file
-save_mle_age_results <- function(results, community, filename = "result_community_mle_6_3_age_daily.txt") {
-  sink(filename, append = file.exists(filename))
-
-  cat("=== COMMUNITY:", community, "===\n")
-  cat("TIMESTAMP:", format(Sys.time()), "\n")
-
-  # parameter estimates
-  cat("\n[PARAMETERS]\n")
-  cat("BASELINE:", results$baseline, "\n")
-  cat("AGE_COEFFS:", paste(round(results$age_coefficients, 6), collapse = " "), "\n")
-  cat("EXCITATION_PARAMS:", paste(round(results$excitation_params, 6), collapse = " "), "\n")
-  cat("DECAY_PARAMS:", paste(round(results$decay_params, 6), collapse = " "), "\n")
-
-  # model diagnostics
-  cat("\n[DIAGNOSTICS]\n")
-  cat("LOGLIK:", results$loglik, "\n")
-  cat("CONVERGENCE:", results$convergence, "\n")
-  cat("N_EVENTS:", results$n_events, "\n")
-  cat("FUNCTION_EVALS:", results$counts[1], "\n")
-
-  cat("\n---END---\n\n")
-  sink()
-}
-
-# initial parameters
-initial_params <- c(
-  0.1,              # baseline
-  rep(0.01, 8),     # age coefficients
-  rep(0.1, 6),      # 6 excitation parameters
-  c(0.5, 0.2, 0.1)  # 3 decay parameters
-)
-
-# create fresh results file
-if (file.exists("result_community_mle_6_3_age_daily.txt")) file.remove("result_community_mle_6_3_age_daily.txt")
-
-# loops through communities and estimates parameters
-for (community_name in names(communities)) {
-  cat("\n=== Processing", community_name, "===\n")
-
-  # prepare community data
-  community_data <- communities[[community_name]]
-  age_dist <- community_data$age_data[-9]/sum(community_data$age_data[-9])
-
-  # run optimization
-  fit <- optim(
-    par = initial_params,
-    fn = log_likelihood,
-    event_times = community_data$event_times,
-    age_distribution = age_dist,
-    method = "L-BFGS-B",
-    lower = c(rep(0, 9), rep(0, 6), rep(0.01, 3)),
-    upper = c(rep(Inf, 9), rep(10, 6), rep(10, 3)),
-    control = list(trace = 1, maxit = 300)
-  )
-
-  # prepare results
-  mle_age_results_daily <- list(
-    baseline = fit$par[1],
-    age_coefficients = fit$par[2:9],
-    excitation_params = fit$par[10:15],
-    decay_params = fit$par[16:18],
-    loglik = -fit$value,
-    convergence = fit$convergence,
-    n_events = length(community_data$event_times),
-    counts = fit$counts
-  )
-
-  # save results
-  save_mle_age_results(mle_age_results_daily, community_name)
-
-  # summary
-  cat("\nCompleted", community_name, "with convergence", fit$convergence, "\n")
-  cat("Log-likelihood:", -fit$value, "\n")
-}
+# save_mle_age_results <- function(results, community, filename = "result_community_mle_6_3_age_daily.txt") {
+#   sink(filename, append = file.exists(filename))
+# 
+#   cat("=== COMMUNITY:", community, "===\n")
+#   cat("TIMESTAMP:", format(Sys.time()), "\n")
+# 
+#   # parameter estimates
+#   cat("\n[PARAMETERS]\n")
+#   cat("BASELINE:", results$baseline, "\n")
+#   cat("AGE_COEFFS:", paste(round(results$age_coefficients, 6), collapse = " "), "\n")
+#   cat("EXCITATION_PARAMS:", paste(round(results$excitation_params, 6), collapse = " "), "\n")
+#   cat("DECAY_PARAMS:", paste(round(results$decay_params, 6), collapse = " "), "\n")
+# 
+#   # model diagnostics
+#   cat("\n[DIAGNOSTICS]\n")
+#   cat("LOGLIK:", results$loglik, "\n")
+#   cat("CONVERGENCE:", results$convergence, "\n")
+#   cat("N_EVENTS:", results$n_events, "\n")
+#   cat("FUNCTION_EVALS:", results$counts[1], "\n")
+# 
+#   cat("\n---END---\n\n")
+#   sink()
+# }
+# 
+# # initial parameters
+# initial_params <- c(
+#   0.1,              # baseline
+#   rep(0.01, 8),     # age coefficients
+#   rep(0.1, 6),      # 6 excitation parameters
+#   c(0.5, 0.2, 0.1)  # 3 decay parameters
+# )
+# 
+# # create fresh results file
+# if (file.exists("result_community_mle_6_3_age_daily.txt")) file.remove("result_community_mle_6_3_age_daily.txt")
+# 
+# # loops through communities and estimates parameters
+# for (community_name in names(communities)) {
+#   cat("\n=== Processing", community_name, "===\n")
+# 
+#   # prepare community data
+#   community_data <- communities[[community_name]]
+#   age_dist <- community_data$age_data[-9]/sum(community_data$age_data[-9])
+# 
+#   # run optimization
+#   fit <- optim(
+#     par = initial_params,
+#     fn = log_likelihood,
+#     event_times = community_data$event_times,
+#     age_distribution = age_dist,
+#     method = "L-BFGS-B",
+#     lower = c(rep(0, 9), rep(0, 6), rep(0.01, 3)),
+#     upper = c(rep(Inf, 9), rep(10, 6), rep(10, 3)),
+#     control = list(trace = 1, maxit = 300)
+#   )
+# 
+#   # prepare results
+#   mle_age_results_daily <- list(
+#     baseline = fit$par[1],
+#     age_coefficients = fit$par[2:9],
+#     excitation_params = fit$par[10:15],
+#     decay_params = fit$par[16:18],
+#     loglik = -fit$value,
+#     convergence = fit$convergence,
+#     n_events = length(community_data$event_times),
+#     counts = fit$counts
+#   )
+# 
+#   # save results
+#   save_mle_age_results(mle_age_results_daily, community_name)
+# 
+#   # summary
+#   cat("\nCompleted", community_name, "with convergence", fit$convergence, "\n")
+#   cat("Log-likelihood:", -fit$value, "\n")
+# }
 ```
 
 ```{r}
@@ -742,6 +741,62 @@ metrics_df <- do.call(rbind, community_metrics)
 print(metrics_df, row.names = FALSE)
 ```
 
+```{r}
+# spatial data
+geodata <- read_sf("C:/Users/cupca/Desktop/UCLA/Thesis/geospatial_data/CHP_2023_Data.shp") %>%
+  dplyr::select(-"Geo_ID", -"Label") %>%
+  rename("name" = "Geo_Short_")
+
+community_name_map <- c("Santa Monica" = "Santa Monica", 
+                        "Silverlake" = "Silverlake",
+                        "Pomona" = "Pomona",
+                        "Glendale" = "Glendale",
+                        "El Monte" = "El Monte",
+                        "Little Armenia" = "Little Armenia",
+                        "Signal Hill" = "Signal Hill")
+
+# calculate expected deaths
+expected_deaths_df <- data.frame(
+  name = unname(community_name_map),
+  expected_deaths = sapply(names(community_data_mle_age), function(comm) {
+    results_df <- all_mle_age_results_daily[[comm]]$data
+    sum(results_df$expected, na.rm = TRUE)
+  })
+)
+
+# merge spatial and expected death data
+geodata_subset <- geodata %>%
+  filter(name %in% expected_deaths_df$name) %>%
+  left_join(expected_deaths_df, by = "name")
+
+# plot
+ggplot(geodata_subset) +
+  geom_sf(aes(fill = expected_deaths), color = "white") +
+  geom_sf_text(aes(label = name), size = 2, color = "black") +
+  scale_fill_viridis_c(option = "plasma", na.value = "grey80",
+                       name = "Expected Deaths") +
+  labs(title = "All past data age MLE model estimated total COVID-19 deaths") +
+  theme_minimal()
+```
+
+```{r}
+geodata <- read_sf("C:/Users/cupca/Desktop/UCLA/Thesis/geospatial_data/CHP_2023_Data.shp")
+geodata <- geodata %>% 
+  dplyr::select(-"Geo_ID", -"Label") %>% 
+  rename("name" = "Geo_Name") # drop unecessary columns
+
+# join expected deaths to geospatial data
+geodata_expected <- left_join(geodata, expected_deaths_df, by = "name")
+
+library(ggplot2)
+
+ggplot(geodata_expected) +
+  geom_sf(aes(fill = expected_deaths), color = "white") +
+  scale_fill_viridis_c(option = "magma", name = "Expected Deaths", trans = "log") +
+  labs(title = "Expected COVID-19 Deaths by LA Community based on Age 6 excitation, 3 decay MLE model (all past data)") +
+  theme_minimal()
+```
+
 
 #### 16 day rolling window approach
 
@@ -817,15 +872,15 @@ fit_daily_mle_age <- function(community_name) {
 result_mle_age_daily_6_3 <- matrix(0, ncol = 18, nrow = 7)
 
 # clear file to start fresh before appending new results
-sink("result_community_mle_6_3_age_daily.txt")
-sink()
-for (m in 1:7) {
-    result_mle_age_daily_6_3[m,] = fit_daily_mle_age(communities[m])
-    # append to file
-    sink("result_community_mle_6_3_age_daily.txt", append=T)
-    cat(m, " ", result_mle_age_daily_6_3[m,], "\n")
-    sink()
-}
+# sink("result_community_mle_6_3_age_daily.txt")
+# sink()
+# for (m in 1:7) {
+#     result_mle_age_daily_6_3[m,] = fit_daily_mle_age(communities[m])
+#     # append to file
+#     sink("result_community_mle_6_3_age_daily.txt", append=T)
+#     cat(m, " ", result_mle_age_daily_6_3[m,], "\n")
+#     sink()
+# }
 
 x1 = scan("C:/Users/cupca/Desktop/UCLA/Thesis/result_community_mle_6_3_age_daily.txt") 
 x2 <- matrix(x1, ncol = 19, nrow = 7, byrow = TRUE)
@@ -973,4 +1028,59 @@ for (i in 1:7) {
 data.frame(Community = communities, MAE = mae_mle_age_daily_values)
 ```
 
+```{r}
+# spatial data
+geodata <- read_sf("C:/Users/cupca/Desktop/UCLA/Thesis/geospatial_data/CHP_2023_Data.shp") %>%
+  dplyr::select(-Geo_ID, -Label) %>%
+  rename(name = Geo_Short_)
+
+geodata <- geodata %>%
+  mutate(
+    clean_name = case_when(
+      name == "Santa Monica" ~ "Santa_Monica",
+      name == "Silverlake" ~ "Silverlake",
+      name == "Pomona" ~ "Pomona",
+      name == "Glendale" ~ "Glendale",
+      name == "El Monte" ~ "El_Monte",
+      name == "Little Armenia" ~ "Little_Armenia",
+      name == "Signal Hill" ~ "Signal_Hill",
+      TRUE ~ NA_character_
+    )
+  )
+
+community_data_list <- list(
+  Santa_Monica = santa_monica,
+  Silverlake = silverlake,
+  Pomona = pomona,
+  Glendale = glendale,
+  El_Monte = el_monte,
+  Little_Armenia = little_armenia,
+  Signal_Hill = signal_hill
+)
+
+# calculate expected total deaths per community
+geodata$expected_total <- purrr::map2_dbl(
+  geodata$clean_name,
+  geodata$name,
+  function(clean, full_name) {
+    if (is.na(clean) || is.null(community_data_list[[clean]])) return(NA_real_)
+    df <- community_data_list[[clean]]
+    expected <- compute_expected_deaths_age_mle_6_3(result_mle_age_daily_6_3[1, ], df, clean)
+    sum(expected, na.rm = TRUE)
+  }
+)
+
+# zoom in
+geodata_zoom <- geodata %>%
+  filter(!is.na(expected_total))
+
+# plot
+ggplot(geodata_zoom) +
+  geom_sf(aes(fill = expected_total), color = "white") +
+  geom_sf_text(aes(label = name), size = 2, color = "black") +
+  scale_fill_viridis_c(option = "plasma", na.value = "grey80") +
+  labs(title = "16-day rolling window age MLE model estimated COVID-19 deaths",
+       fill = "Expected Deaths") +
+  theme_minimal()
+```
 

@@ -1,5 +1,5 @@
 ---
-title: "MASDS Thesis"
+title: "MASDS Thesis - MLE Model (no age)"
 author: "Lauren Huang"
 date: "`r Sys.Date()`"
 output: pdf_document
@@ -386,45 +386,45 @@ initial_params <- c(
 )
 
 # if you want to clear the saved parameter estimates
-if (file.exists("result_community_mle_6_3_no_age_daily_old.txt")) file.remove("result_community_mle_6_3_no_age_daily_old.txt")
-
-# loops through communities and estimates parameters
-for (community_name in names(communities)) {
-  cat("\n=== Processing", community_name, "===\n")
-
-  # prepare community data
-  community_data <- communities[[community_name]]
-
-  # run optimization
-  fit <- optim(
-    par = initial_params,
-    fn = log_likelihood_mle,
-    event_times = community_data$event_times,
-    method = "L-BFGS-B",
-    lower = c(1e-5, rep(1e-5, 6), rep(1e-3, 3)),
-    upper = c(Inf, rep(10, 6), rep(10, 3)),
-    hessian = TRUE,
-    control = list(trace = 1, maxit = 300)
-  )
-
-  # prepare results
-  mle_daily_results <- list(
-    baseline = fit$par[1],
-    excitation_params = fit$par[2:7],
-    decay_params = fit$par[8:10],
-    loglik = -fit$value,
-    convergence = fit$convergence,
-    n_events = length(community_data$event_times),
-    counts = fit$counts
-  )
-
-  # save results
-  save_mle_results(mle_daily_results, community_name)
-
-  # summary
-  cat("\nCompleted", community_name, "with convergence", fit$convergence, "\n")
-  cat("Log-likelihood:", -fit$value, "\n")
-}
+# if (file.exists("result_community_mle_6_3_no_age_daily_old.txt")) file.remove("result_community_mle_6_3_no_age_daily_old.txt")
+# 
+# # loops through communities and estimates parameters
+# for (community_name in names(communities)) {
+#   cat("\n=== Processing", community_name, "===\n")
+# 
+#   # prepare community data
+#   community_data <- communities[[community_name]]
+# 
+#   # run optimization
+#   fit <- optim(
+#     par = initial_params,
+#     fn = log_likelihood_mle,
+#     event_times = community_data$event_times,
+#     method = "L-BFGS-B",
+#     lower = c(1e-5, rep(1e-5, 6), rep(1e-3, 3)),
+#     upper = c(Inf, rep(10, 6), rep(10, 3)),
+#     hessian = TRUE,
+#     control = list(trace = 1, maxit = 300)
+#   )
+# 
+#   # prepare results
+#   mle_daily_results <- list(
+#     baseline = fit$par[1],
+#     excitation_params = fit$par[2:7],
+#     decay_params = fit$par[8:10],
+#     loglik = -fit$value,
+#     convergence = fit$convergence,
+#     n_events = length(community_data$event_times),
+#     counts = fit$counts
+#   )
+# 
+#   # save results
+#   save_mle_results(mle_daily_results, community_name)
+# 
+#   # summary
+#   cat("\nCompleted", community_name, "with convergence", fit$convergence, "\n")
+#   cat("Log-likelihood:", -fit$value, "\n")
+# }
 ```
 
 ```{r}
@@ -720,17 +720,17 @@ fit_daily_mle_6_3 <- function(community_name) {
 result_mle_daily_6_3 <- matrix(0, ncol = 10, nrow = 7)
 
 # clear file to start fresh before appending new results
-sink("result_community_mle_6_3_no_age_daily.txt")
-sink()
-for (m in 1:7) {
-    result_mle_daily_6_3[m,] = fit_daily_mle_6_3(communities[m])
-    # append to file
-    sink("result_community_mle_6_3_no_age_daily.txt", append=T)
-    cat(m, " ", result_mle_daily_6_3[m,], "\n")
-    sink()
-}
+# sink("result_community_mle_6_3_no_age_daily.txt")
+# sink()
+# for (m in 1:7) {
+#     result_mle_daily_6_3[m,] = fit_daily_mle_6_3(communities[m])
+#     # append to file
+#     sink("result_community_mle_6_3_no_age_daily.txt", append=T)
+#     cat(m, " ", result_mle_daily_6_3[m,], "\n")
+#     sink()
+# }
 
-x1 = scan("C:/Users/cupca/Desktop/UCLA/Thesis/result_community_mle_6_3_no_age_daily.txt") 
+x1 = scan("C:/Users/cupca/Desktop/UCLA/Thesis/result_community_mle_6_3_no_age_daily.txt")
 x2 <- matrix(x1, ncol = 11, nrow = 7, byrow = TRUE)
 result_mle_daily_6_3 <- x2[1:7, 2:11]
 ```

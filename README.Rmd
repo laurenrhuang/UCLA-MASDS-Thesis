@@ -1,0 +1,189 @@
+---
+title: "README File"
+author: "Lauren Huang"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Estimating COVID-19 Deaths in LA Communities through a Hawkes Process Model
+
+This project explores spatio-temporal COVID-19 death trends through exploratory data analysis (EDA) and Hawkes process models which use different methods of parameter estimation. All models share a common data import and cleaning procedure.
+
+The 7 communities in the subset that will be modeled:
+- Santa Monica
+- Silverlake
+- Pomona
+- Glendale
+- El Monte
+- Little Armenia
+- Signal Hill
+
+## Project Files
+
+- `MASDS_Thesis_EDA.Rmd`: Initial exploratory data analysis (EDA) on the COVID-19 death data.
+
+- `MASDS_Thesis_stelfi_model.Rmd`: Fits a Hawkes process model on both daily and weekly scale death data for all 7 communities using the package stelfi, which uses maximum likelihood estimation (MLE). The stelfi model estimates 1 excitation rate and 1 decay rate parameter. It provides a baseline for comparison with other models.
+
+- `MASDS_Thesis_MLE_model_no_age.Rmd`: Fits a Hawkes process model on daily scale death data for all 7 communities with 6 excitation rate and 3 decay rate parameters, using maximum likelihood estimation (MLE). Fits models using 2 different methods of past data: full history/all past data and 16-day rolling window. Provides a comparison of models using multiple excitation, decay parameters versus 1 excitation, decay parameter as in the stelfi model. Also provides a baseline for comparison of the effects of age in later models.
+
+- `MASDS_Thesis_MLE_model_with_age.Rmd`: Fits a Hawkes process model on daily scale death data for all 7 communities with 6 excitation rate, 3 decay rate, and 8 age covariate parameters, using maximum likelihood estimation (MLE). Fits models using 2 different methods of past data: full history/all past data and 16-day rolling window.
+
+- `MASDS_Thesis_LSE_model.Rmd`: Fits a Hawkes process model on daily scale death data for all 7 communities with 6 excitation rate, 3 decay rate, and 8 age covariate parameters, using least squares estimation (LSE). Fits models using 2 different methods of past data: full history/all past data and 16-day rolling window.
+
+- `MASDS_Thesis_Bayesian_model_allpast_Santa_Monica.Rmd`, 
+`MASDS_Thesis_Bayesian_model_allpast_Silverlake.Rmd`
+`MASDS_Thesis_Bayesian_model_allpast_Pomona.Rmd`,
+`MASDS_Thesis_Bayesian_model_allpast_Glendale.Rmd`,
+`MASDS_Thesis_Bayesian_model_allpast_El_Monte.Rmd`,
+`MASDS_Thesis_Bayesian_model_allpast_Little_Armenia.Rmd`,
+`MASDS_Thesis_Bayesian_model_allpast_Signal_Hill.Rmd`: Fits a Hawkes process model on daily scale death data with 6 excitation rate, 3 decay rate, and 8 age covariate parameters, using Bayesian inference via the inlabru package. Fits models using full history/all past data. Each file has the same code, each of the 7 communities are saved separately in their own file.
+
+`MASDS_Thesis_Bayesian_model_16window_Santa_Monica.Rmd`, 
+`MASDS_Thesis_Bayesian_model_16window_Silverlake.Rmd`
+`MASDS_Thesis_Bayesian_model_16window_Pomona.Rmd`,
+`MASDS_Thesis_Bayesian_model_16window_Glendale.Rmd`,
+`MASDS_Thesis_Bayesian_model_16window_El_Monte.Rmd`,
+`MASDS_Thesis_Bayesian_model_16window_Little_Armenia.Rmd`,
+`MASDS_Thesis_Bayesian_model_16window_Signal_Hill.Rmd`: Fits a Hawkes process model on daily scale death data with 6 excitation rate, 3 decay rate, and 8 age covariate parameters, using Bayesian inference via the inlabru package. Fits models using the 16-day rolling window approach of past data. Each file has the same code, each of the 7 communities are saved separately in their own file.
+
+- `MASDS_Thesis_MLE_model_byyear_Santa_Monica.Rmd`,
+`MASDS_Thesis_MLE_model_byyear_Glendale.Rmd`,
+`MASDS_Thesis_MLE_model_byyear_Little_Armenia.Rmd`: Fits a Hawkes process model on daily scale death data with 6 excitation rate, 3 decay rate, and 8 age covariate parameters, using maximum likelihood estimation (MLE). Fits models using 2 different methods of past data: full history/all past data and 16-day rolling window. Separates community death data into 3 chunks by year, 2020, 2021 and 2022. 
+The communities were chosen based on having different population sizes/death report counts: Santa Monica (moderate), Glendale (large), Little Armenia (small). This model aims to investigate the residuals and see if non-stationarity trends exist.
+
+## How to Run
+
+Each Rmd file can be run independently after installing the required R packages.
+
+Basic Steps:
+1. Download all the data directories, all the `.Rmd` files, and all the corresponding `.txt` files which contain the saved parameter estimates. Save them all in the same parent directory.
+2. Open a `.Rmd` file in RStudio.
+2. Click `Knit` to run the analysis.
+
+See each individual file to load required packages. 
+Example required R packages: `utils`, `dplyr`, `purrr`, `fs`, `stringr`, `lubridate`, `stelfi`, `PtProcess`, `stats`, `tidyr`, `ggplot2`, `foreach`, `parallel`, `purrr`, `inlabru`, `INLA`, `sn`, `rstan`, `brms`, `bayesplot`, `patchwork`, `reshape2`, `sf`, `tmap`, `cartogram`, `MASS`, `fitdistrplus`, `geosphere`, `spData`, `geodist`, `vegan`, `ade4`, `scales`, `patchwork`.
+
+## Example
+
+Each R Markdown file can be run independently and includes all necessary steps to load, clean, and model the COVID-19 death data.
+
+To view the full analysis for a given model (ex. the stelfi model), open the corresponding `.Rmd` file in RStudio and run it.
+
+Please note that the `.txt` files contain saved parameter estimates, save them in the same directory as the model `.Rmd` file when you run the code. Using them will save time when running the model code in the R Markdown files. You will notice that in some files, code that was originally used to run the model and save the parameters is commented out for this reason.
+
+The example below shows all the model files, simply run to get the results.
+
+```{r}
+# example necessary packages, may differ between model files
+# recommended to run files individually
+library(utils)
+library(dplyr)
+library(purrr)
+library(fs)
+library(stringr)
+library(ggplot2)
+library(sf)
+library(tmap)
+library(cartogram)
+library(stelfi)
+library(lubridate)
+library(hawkes)
+library(MASS)
+library(fitdistrplus)
+library(PtProcess)
+library(stats)
+library(foreach)
+library(sn)
+library(geosphere)
+library(spData)
+library(sf)
+library(tidyr)
+library(geodist)
+library(vegan)
+library(ade4)
+library(scales)
+library(patchwork)
+library(parallel)
+library(reshape2)
+
+# open and knit the files below in RStudio
+
+# Exploratory Data Analysis
+MASDS_Thesis_EDA.Rmd
+rmarkdown::render("MASDS_Thesis_EDA.Rmd")
+
+# stelfi model
+MASDS_Thesis_stelfi_model.Rmd
+rmarkdown::render("MASDS_Thesis_stelfi_model.Rmd")
+
+# MLE model (no Age)
+MASDS_Thesis_MLE_model_no_age.Rmd
+rmarkdown::render("MASDS_Thesis_MLE_model_no_age.Rmd")
+
+# MLE model (with Age)
+MASDS_Thesis_MLE_model_with_age.Rmd
+rmarkdown::render("MASDS_Thesis_MLE_model_with_age.Rmd")
+
+# LSE model
+MASDS_Thesis_LSE_model.Rmd
+rmarkdown::render("MASDS_Thesis_LSE_model.Rmd")
+
+# Bayesian models: all past data approach
+MASDS_Thesis_Bayesian_model_allpast_Santa_Monica.Rmd
+rmarkdown::render("MASDS_Thesis_Bayesian_model_allpast_Santa_Monica.Rmd")
+
+MASDS_Thesis_Bayesian_model_allpast_Silverlake.Rmd
+rmarkdown::render("MASDS_Thesis_Bayesian_model_allpast_Silverlake.Rmd")
+
+MASDS_Thesis_Bayesian_model_allpast_Pomona.Rmd
+rmarkdown::render("MASDS_Thesis_Bayesian_model_allpast_Pomona.Rmd")
+
+MASDS_Thesis_Bayesian_model_allpast_Glendale.Rmd
+rmarkdown::render("MASDS_Thesis_Bayesian_model_allpast_Glendale.Rmd")
+
+MASDS_Thesis_Bayesian_model_allpast_El_Monte.Rmd
+rmarkdown::render("MASDS_Thesis_Bayesian_model_allpast_El_Monte.Rmd")
+
+MASDS_Thesis_Bayesian_model_allpast_Little_Armenia.Rmd
+rmarkdown::render("MASDS_Thesis_Bayesian_model_allpast_Little_Armenia.Rmd")
+
+MASDS_Thesis_Bayesian_model_allpast_Signal_Hill.Rmd
+rmarkdown::render("MASDS_Thesis_Bayesian_model_allpast_Signal_Hill.Rmd")
+
+# Bayesian models: 16-day rolling window approach
+MASDS_Thesis_Bayesian_model_allpast_Santa_Monica.Rmd
+rmarkdown::render("MASDS_Thesis_Bayesian_model_16window_Santa_Monica.Rmd")
+
+MASDS_Thesis_Bayesian_model_allpast_Silverlake.Rmd
+rmarkdown::render("MASDS_Thesis_Bayesian_model_16window_Silverlake.Rmd")
+
+MASDS_Thesis_Bayesian_model_allpast_Pomona.Rmd
+rmarkdown::render("MASDS_Thesis_Bayesian_model_16window_Pomona.Rmd")
+
+MASDS_Thesis_Bayesian_model_allpast_Glendale.Rmd
+rmarkdown::render("MASDS_Thesis_Bayesian_model_16window_Glendale.Rmd")
+
+MASDS_Thesis_Bayesian_model_allpast_El_Monte.Rmd
+rmarkdown::render("MASDS_Thesis_Bayesian_model_16window_El_Monte.Rmd")
+
+MASDS_Thesis_Bayesian_model_allpast_Little_Armenia.Rmd
+rmarkdown::render("MASDS_Thesis_Bayesian_model_16window_Little_Armenia.Rmd")
+
+MASDS_Thesis_Bayesian_model_allpast_Signal_Hill.Rmd
+rmarkdown::render("MASDS_Thesis_Bayesian_model_16window_Signal_Hill.Rmd")
+
+# MLE by-year models (testing for non-stationarity)
+MASDS_Thesis_MLE_model_byyear_Santa_Monica.Rmd
+rmarkdown::render("MASDS_Thesis_MLE_model_byyear_Santa_Monica.Rmd")
+
+MASDS_Thesis_MLE_model_byyear_Glendale.Rmd
+rmarkdown::render("MASDS_Thesis_MLE_model_byyear_Glendale.Rmd")
+
+MASDS_Thesis_MLE_model_byyear_Little_Armenia.Rmd
+rmarkdown::render("MASDS_Thesis_MLE_model_byyear_Little_Armenia.Rmd")
+```
+

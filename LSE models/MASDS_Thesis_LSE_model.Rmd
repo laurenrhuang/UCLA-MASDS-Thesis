@@ -1,5 +1,5 @@
 ---
-title: "MASDS Thesis"
+title: "MASDS Thesis - LSE Model with age"
 author: "Lauren Huang"
 date: "`r Sys.Date()`"
 output: pdf_document
@@ -415,19 +415,17 @@ communities <- c("Santa_Monica", "Silverlake", "Pomona", "Glendale",
 
 result_lse_age_6_3_old <- matrix(0, nrow = 7, ncol = 18)
 
-# clear existing log
-file.create("rmse_log.txt")
-
 # run estimation
-sink("result_community_lse_6_3_age_old.txt")
-sink()
-for (m in 1:7) {
-    result_lse_age_6_3_old[m,] = fit_lse_age_6_3_allpast(communities[m])
-    sink("result_community_lse_6_3_age_old.txt", append = T)
-    # append to file
-    cat(m, " ", result_lse_age_6_3_old[m,], "\n")
-    sink()
-}
+# file.create("rmse_log.txt")
+# sink("result_community_lse_6_3_age_old.txt")
+# sink()
+# for (m in 1:7) {
+#     result_lse_age_6_3_old[m,] = fit_lse_age_6_3_allpast(communities[m])
+#     sink("result_community_lse_6_3_age_old.txt", append = T)
+#     # append to file
+#     cat(m, " ", result_lse_age_6_3_old[m,], "\n")
+#     sink()
+# }
 
 x1 = scan("C:/Users/cupca/Desktop/UCLA/Thesis/result_community_lse_6_3_age_old.txt") 
 x2 <- matrix(x1, ncol = 19, nrow = 7, byrow = TRUE)
@@ -588,6 +586,62 @@ for (i in 1:7) {
 data.frame(Community = communities, MAE = mae_age_lse_values_old)
 ```
 
+```{r}
+# spatial data
+geodata <- read_sf("C:/Users/cupca/Desktop/UCLA/Thesis/geospatial_data/CHP_2023_Data.shp") %>%
+  dplyr::select(-Geo_ID, -Label) %>%
+  rename(name = Geo_Short_)
+
+geodata <- geodata %>%
+  mutate(
+    clean_name = case_when(
+      name == "Santa Monica" ~ "Santa_Monica",
+      name == "Silverlake" ~ "Silverlake",
+      name == "Pomona" ~ "Pomona",
+      name == "Glendale" ~ "Glendale",
+      name == "El Monte" ~ "El_Monte",
+      name == "Little Armenia" ~ "Little_Armenia",
+      name == "Signal Hill" ~ "Signal_Hill",
+      TRUE ~ NA_character_
+    )
+  )
+
+community_data_list <- list(
+  Santa_Monica = santa_monica,
+  Silverlake = silverlake,
+  Pomona = pomona,
+  Glendale = glendale,
+  El_Monte = el_monte,
+  Little_Armenia = little_armenia,
+  Signal_Hill = signal_hill
+)
+
+# calculate expected total deaths per community
+geodata$expected_total <- purrr::map2_dbl(
+  geodata$clean_name,
+  geodata$name,
+  function(clean, full_name) {
+    if (is.na(clean) || is.null(community_data_list[[clean]])) return(NA_real_)
+    df <- community_data_list[[clean]]
+    expected <- compute_expected_deaths_lse_age_6_3_allpast(result_lse_age_6_3_old[1, ], df, clean)
+    sum(expected, na.rm = TRUE)
+  }
+)
+
+# zoom in
+geodata_zoom <- geodata %>%
+  filter(!is.na(expected_total))
+
+# plot
+ggplot(geodata_zoom) +
+  geom_sf(aes(fill = expected_total), color = "white") +
+  geom_sf_text(aes(label = name), size = 2, color = "black") +
+  scale_fill_viridis_c(option = "plasma", na.value = "grey80") +
+  labs(title = "All past data age LSE model estimated COVID-19 deaths",
+       fill = "Expected Deaths") +
+  theme_minimal()
+```
+
 
 #### 16 day rolling window approach
 
@@ -655,15 +709,15 @@ communities <- c("Santa_Monica", "Silverlake", "Pomona", "Glendale",
 result_lse_age_6_3 <- matrix(0, nrow = 7, ncol = 18)
 
 # run estimation
-sink("result_community_lse_6_3_age.txt")
-sink()
-for (m in 1:7) {
-    result_lse_age_6_3[m,] = fit_lse_age_6_3(communities[m])
-    # append to file
-    sink("result_community_lse_6_3_age.txt", append=T)
-    cat(m, " ", result_lse_age_6_3[m,], "\n")
-    sink()
-}
+# sink("result_community_lse_6_3_age.txt")
+# sink()
+# for (m in 1:7) {
+#     result_lse_age_6_3[m,] = fit_lse_age_6_3(communities[m])
+#     # append to file
+#     sink("result_community_lse_6_3_age.txt", append=T)
+#     cat(m, " ", result_lse_age_6_3[m,], "\n")
+#     sink()
+# }
 
 x1 = scan("C:/Users/cupca/Desktop/UCLA/Thesis/result_community_lse_6_3_age.txt") 
 x2 <- matrix(x1, ncol = 19, nrow = 7, byrow = TRUE)
@@ -819,4 +873,60 @@ for (i in 1:7) {
 data.frame(Community = communities, MAE = mae_age_lse_6_3_values)
 ```
 
+
+```{r}
+# spatial data
+geodata <- read_sf("C:/Users/cupca/Desktop/UCLA/Thesis/geospatial_data/CHP_2023_Data.shp") %>%
+  dplyr::select(-Geo_ID, -Label) %>%
+  rename(name = Geo_Short_)
+
+geodata <- geodata %>%
+  mutate(
+    clean_name = case_when(
+      name == "Santa Monica" ~ "Santa_Monica",
+      name == "Silverlake" ~ "Silverlake",
+      name == "Pomona" ~ "Pomona",
+      name == "Glendale" ~ "Glendale",
+      name == "El Monte" ~ "El_Monte",
+      name == "Little Armenia" ~ "Little_Armenia",
+      name == "Signal Hill" ~ "Signal_Hill",
+      TRUE ~ NA_character_
+    )
+  )
+
+community_data_list <- list(
+  Santa_Monica = santa_monica,
+  Silverlake = silverlake,
+  Pomona = pomona,
+  Glendale = glendale,
+  El_Monte = el_monte,
+  Little_Armenia = little_armenia,
+  Signal_Hill = signal_hill
+)
+
+# calculate expected total deaths per community
+geodata$expected_total <- purrr::map2_dbl(
+  geodata$clean_name,
+  geodata$name,
+  function(clean, full_name) {
+    if (is.na(clean) || is.null(community_data_list[[clean]])) return(NA_real_)
+    df <- community_data_list[[clean]]
+    expected <- compute_expected_deaths_lse_age_6_3(result_lse_age_6_3[1, ], df, clean)
+    sum(expected, na.rm = TRUE)
+  }
+)
+
+# zoom in
+geodata_zoom <- geodata %>%
+  filter(!is.na(expected_total))
+
+# plot
+ggplot(geodata_zoom) +
+  geom_sf(aes(fill = expected_total), color = "white") +
+  geom_sf_text(aes(label = name), size = 2, color = "black") +
+  scale_fill_viridis_c(option = "plasma", na.value = "grey80") +
+  labs(title = "16-day rolling window age LSE model estimated COVID-19 deaths",
+       fill = "Expected Deaths") +
+  theme_minimal()
+```
 

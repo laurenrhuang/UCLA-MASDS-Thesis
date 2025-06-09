@@ -1,5 +1,5 @@
 ---
-title: "MASDS Thesis Bayesian model"
+title: "MASDS Thesis - Bayesian model 16-day rolling window - Glendale"
 author: "Lauren Huang"
 date: "`r Sys.Date()`"
 output: html_document
@@ -493,16 +493,16 @@ loggaus.values <- loggaus.t(st.gaussian.sample, 0.5, 0.5)
 beta.values <- beta.t(st.gaussian.sample, 2, 2)
 
 link.f.be <- list(
-  mu = \(x) gamma.t(x, 0.5, 0.5),
-  K1 = \(x) gamma.t(x, 1.5, 1),
-  K2 = \(x) gamma.t(x, 2, 2),
-  K3 = \(x) gamma.t(x, 2, 2),
-  K4 = \(x) gamma.t(x, 2, 2),
-  K5 = \(x) gamma.t(x, 2, 2),
-  K6 = \(x) gamma.t(x, 2, 2),
-  c1 = \(x) gamma.t(x, 3, 1),
-  c2 = \(x) gamma.t(x, 3, 1),
-  c3 = \(x) gamma.t(x, 3, 1),
+  mu = \(x) gamma.t(x, 2, 5),
+  K1 = \(x) gamma.t(x, 2, 3),
+  K2 = \(x) gamma.t(x, 2, 3),
+  K3 = \(x) gamma.t(x, 2, 3),
+  K4 = \(x) gamma.t(x, 2, 3),
+  K5 = \(x) gamma.t(x, 2, 3),
+  K6 = \(x) gamma.t(x, 2, 3),
+  c1 = \(x) gamma.t(x, 4, 2),
+  c2 = \(x) gamma.t(x, 4, 2),
+  c3 = \(x) gamma.t(x, 4, 2),
   alpha_age1 = \(x) unif.t(x, -2, 2),
   alpha_age2 = \(x) unif.t(x, -1, 1),
   alpha_age3 = \(x) unif.t(x, -1, 1),
@@ -741,7 +741,7 @@ covid_fit_age_multi <- Hawkes.bru(
   age_data = age_data_g[-9]
 )
 
-summary(covid_fit_age_multi) # converged at 12 iterations
+summary(covid_fit_age_multi) # converged at 6 iterations
 ```
 
 ```{r}
@@ -973,6 +973,9 @@ event_times <- glendale$date
 expected_intensity <- sapply(time_grid, function(t) {
   lambda_(params, t, event_times[event_times < t], age_data_g[-9])
 })
+
+# store total expected deaths for making map
+total_expected_deaths_g <- sum(expected_intensity)
 
 comparison_df <- data.frame(
   date = time_grid,

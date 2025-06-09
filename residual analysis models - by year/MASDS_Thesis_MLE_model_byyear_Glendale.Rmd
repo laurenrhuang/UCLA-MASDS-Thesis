@@ -1,5 +1,5 @@
 ---
-title: "MASDS Thesis"
+title: "MASDS Thesis - MLE model - by year Glendale"
 author: "Lauren Huang"
 date: "`r Sys.Date()`"
 output: pdf_document
@@ -32,7 +32,6 @@ library(foreach)
 library(sn)
 library(geosphere)
 library(spData)
-library(sf)
 library(tidyr)
 library(geodist)
 library(vegan)
@@ -349,48 +348,48 @@ initial_params <- c(
 )
 
 # create fresh results file
-if (file.exists("result_glendale_old.txt")) file.remove("result_glendale_old.txt")
-
-# loops through years and estimates parameters
-for (year in years) {
-  cat("\n=== Processing Glendale", year, "===\n")
-
-  # prepare community data
-  event_times_year <- event_times_list[[as.character(year)]]
-  #age_dist <- community_data$age_data[-9]/sum(community_data$age_data[-9])
-
-  # run optimization
-  fit <- optim(
-    par = initial_params,
-    fn = log_likelihood,
-    event_times = event_times_year,
-    age_distribution = age_dist_g,
-    method = "L-BFGS-B",
-    lower = c(rep(0, 9), rep(0, 6), rep(0.01, 3)),
-    upper = c(rep(Inf, 9), rep(10, 6), rep(10, 3)),
-    control = list(trace = 1, maxit = 300)
-  )
-
-  # prepare results
-  mle_age_results_daily <- list(
-    baseline = fit$par[1],
-    age_coefficients = fit$par[2:9],
-    excitation_params = fit$par[10:15],
-    decay_params = fit$par[16:18],
-    loglik = -fit$value,
-    convergence = fit$convergence,
-    n_events = length(event_times_year),
-    counts = fit$counts
-  )
-
-  # save results
-  save_glendale_results(mle_age_results_daily, paste0("Glendale_", year),
-                             filename = "result_glendale_old.txt")
-
-  # summary
-  cat("\nCompleted Glendale", year, "with convergence", fit$convergence, "\n")
-  cat("Log-likelihood:", -fit$value, "\n")
-}
+# if (file.exists("result_glendale_old.txt")) file.remove("result_glendale_old.txt")
+# 
+# # loops through years and estimates parameters
+# for (year in years) {
+#   cat("\n=== Processing Glendale", year, "===\n")
+# 
+#   # prepare community data
+#   event_times_year <- event_times_list[[as.character(year)]]
+#   #age_dist <- community_data$age_data[-9]/sum(community_data$age_data[-9])
+# 
+#   # run optimization
+#   fit <- optim(
+#     par = initial_params,
+#     fn = log_likelihood,
+#     event_times = event_times_year,
+#     age_distribution = age_dist_g,
+#     method = "L-BFGS-B",
+#     lower = c(rep(0, 9), rep(0, 6), rep(0.01, 3)),
+#     upper = c(rep(Inf, 9), rep(10, 6), rep(10, 3)),
+#     control = list(trace = 1, maxit = 300)
+#   )
+# 
+#   # prepare results
+#   mle_age_results_daily <- list(
+#     baseline = fit$par[1],
+#     age_coefficients = fit$par[2:9],
+#     excitation_params = fit$par[10:15],
+#     decay_params = fit$par[16:18],
+#     loglik = -fit$value,
+#     convergence = fit$convergence,
+#     n_events = length(event_times_year),
+#     counts = fit$counts
+#   )
+# 
+#   # save results
+#   save_glendale_results(mle_age_results_daily, paste0("Glendale_", year),
+#                              filename = "result_glendale_old.txt")
+# 
+#   # summary
+#   cat("\nCompleted Glendale", year, "with convergence", fit$convergence, "\n")
+#   cat("Log-likelihood:", -fit$value, "\n")
+# }
 ```
 
 ```{r}
@@ -674,6 +673,8 @@ std_residuals_plot_1 <- ggplot(all_residuals_df_1, aes(x = date, y = std_residua
 std_residuals_plot_1
 ```
 
+#### Ogata Residual Analysis
+
 ```{r}
 # compute Ogata rescaled inter-event times
 compute_rescaled_times_1 <- function(event_times, params, age_dist) {
@@ -811,6 +812,54 @@ ggplot(median_residuals_df_1, aes(x = median_residual)) +
   theme_minimal()
 ```
 
+#### Standardized Residual Analysis
+
+```{r}
+# 2020
+std_res_2020 <- all_residuals_df_1 %>%
+  filter(year == 2020) %>%
+  pull(std_residual)
+
+hist(std_res_2020, breaks = 20, probability = TRUE,
+     main = "Glendale 2020 Standardized Residuals",
+     xlab = "standardized residuals")
+curve(dnorm(x, mean = 0, sd = 1), col = "blue", lwd = 2, add = TRUE)
+
+qqnorm(std_res_2020, main = "Glendale 2020 QQ Plot Standardized Residuals (Normal)")
+qqline(std_res_2020, col = "red")
+
+ks.test(std_res_2020, "pnorm", mean = 0, sd = 1)
+
+# 2021
+std_res_2021 <- all_residuals_df_1 %>%
+  filter(year == 2021) %>%
+  pull(std_residual)
+
+hist(std_res_2021, breaks = 20, probability = TRUE,
+     main = "Glendale 2021 Standardized Residuals",
+     xlab = "standardized residuals")
+curve(dnorm(x, mean = 0, sd = 1), col = "blue", lwd = 2, add = TRUE)
+
+qqnorm(std_res_2021, main = "Glendale 2021 QQ Plot Standardized Residuals (Normal)")
+qqline(std_res_2021, col = "red")
+
+ks.test(std_res_2021, "pnorm", mean = 0, sd = 1)
+
+# 2022
+std_res_2022 <- all_residuals_df_1 %>%
+  filter(year == 2022) %>%
+  pull(std_residual)
+
+hist(std_res_2022, breaks = 20, probability = TRUE,
+     main = "Glendale 2022 Standardized Residuals",
+     xlab = "standardized residuals")
+curve(dnorm(x, mean = 0, sd = 1), col = "blue", lwd = 2, add = TRUE)
+
+qqnorm(std_res_2022, main = "Glendale 2022 QQ Plot Standardized Residuals (Normal)")
+qqline(std_res_2022, col = "red")
+
+ks.test(std_res_2022, "pnorm", mean = 0, sd = 1)
+```
 
 #### 16 day rolling window approach
 
@@ -886,15 +935,15 @@ fit_glendale_by_year <- function(year) {
 result_glendale <- matrix(0, ncol = 18, nrow = 3)
 
 # clear file to start fresh before appending new results
-sink("result_glendale.txt")
-sink()
-for (m in 1:3) {
-    result_glendale[m,] = fit_glendale_by_year(years[m])
-    # append to file
-    sink("result_glendale.txt", append=T)
-    cat(m, " ", result_glendale[m,], "\n")
-    sink()
-}
+# sink("result_glendale.txt")
+# sink()
+# for (m in 1:3) {
+#     result_glendale[m,] = fit_glendale_by_year(years[m])
+#     # append to file
+#     sink("result_glendale.txt", append=T)
+#     cat(m, " ", result_glendale[m,], "\n")
+#     sink()
+# }
 
 x1 = scan("C:/Users/cupca/Desktop/UCLA/Thesis/result_glendale.txt") 
 x2 <- matrix(x1, ncol = 19, nrow = 3, byrow = TRUE)
@@ -1079,13 +1128,15 @@ std_residuals_plot_2 <- ggplot(all_residuals_df_2, aes(x = date, y = std_residua
   geom_line(color = "purple", linewidth = 0.7) +
   geom_hline(yintercept = 0, linetype = "dashed", color = "black", linewidth = 0.8) +
   facet_wrap(~ year, scales = "free_x", ncol = 2) +
-  labs(title = "Standardized Residuals in Glendale by Year (16 day window approach)",
+  labs(title = "Standardized Residuals in Glendale by Year (16-day rolling window)",
        x = "Date",
        y = "Standardized Residuals") +
   theme_minimal()
 
 std_residuals_plot_2
 ```
+
+#### Ogata Residual Analysis
 
 ```{r}
 # compute Ogata rescaled inter-event times
@@ -1231,5 +1282,57 @@ ggplot(median_residuals_df_2, aes(x = median_residual)) +
        y = "frequency") +
   facet_wrap(~ year, ncol = 2) +
   theme_minimal()
+```
+
+#### Standardized Residual Analysis
+
+```{r}
+# 2020
+std_res_2020 <- all_residuals_df_2 %>%
+  filter(year == 2020) %>%
+  pull(std_residual)
+
+hist(std_res_2020, breaks = 20, probability = TRUE,
+     main = "Glendale 2020 Standardized Residuals",
+     xlab = "standardized residuals")
+curve(dnorm(x, mean = 0, sd = 1), col = "blue", lwd = 2, add = TRUE)
+
+qqnorm(std_res_2020,
+       main = "Glendale 2020 QQ Plot Standardized Residuals (Normal)")
+qqline(std_res_2020, col = "red")
+
+ks.test(std_res_2020, "pnorm", mean = 0, sd = 1)
+
+# 2021
+std_res_2021 <- all_residuals_df_2 %>%
+  filter(year == 2021) %>%
+  pull(std_residual)
+
+hist(std_res_2021, breaks = 20, probability = TRUE,
+     main = "Glendale 2021 Standardized Residuals",
+     xlab = "standardized residuals")
+curve(dnorm(x, mean = 0, sd = 1), col = "blue", lwd = 2, add = TRUE)
+
+qqnorm(std_res_2021,
+       main = "Glendale 2021 QQ Plot Standardized Residuals (Normal)")
+qqline(std_res_2021, col = "red")
+
+ks.test(std_res_2021, "pnorm", mean = 0, sd = 1)
+
+# 2022
+std_res_2022 <- all_residuals_df_2 %>%
+  filter(year == 2022) %>%
+  pull(std_residual)
+
+hist(std_res_2022, breaks = 20, probability = TRUE,
+     main = "Glendale 2022 Standardized Residuals",
+     xlab = "standardized residuals")
+curve(dnorm(x, mean = 0, sd = 1), col = "blue", lwd = 2, add = TRUE)
+
+qqnorm(std_res_2022,
+       main = "Glendale 2022 QQ Plot Standardized Residuals (Normal)")
+qqline(std_res_2020, col = "red")
+
+ks.test(std_res_2022, "pnorm", mean = 0, sd = 1)
 ```
 

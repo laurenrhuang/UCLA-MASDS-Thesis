@@ -1,5 +1,5 @@
 ---
-title: "MASDS Thesis Exploratory Data Analysis"
+title: "MASDS Thesis - Exploratory Data Analysis"
 author: "Lauren Huang"
 date: "`r Sys.Date()`"
 output: html_document
@@ -299,7 +299,9 @@ subset_df <- all_covid_data %>%
                      "City of Glendale",
                      "City of El Monte",
                      "Los Angeles - Little Armenia",
-                     "City of Signal Hill"))
+                     "City of Signal Hill")) %>%
+  mutate(daily_death_rate = (incidence / population) * 100000) 
+# daily death rate is a similar concept to incidence, but wrt to population size and on a scale of per 100k people
 ```
 
 ```{r}
@@ -337,7 +339,7 @@ subset_community_trend <- subset_df %>%
 # faceted barplot of death rate for subset communities
 ggplot(subset_df, aes(x = date, y = Death.Rate, fill = name)) +
   geom_bar(stat = "identity") +
-  labs(title = "Death Rate across select LA Communities over time",
+  labs(title = "Death rate across select LA communities over time",
        x = "Date", y = "Deaths per 100k people") +
   facet_wrap(~ name) +
   theme_bw()
@@ -345,17 +347,35 @@ ggplot(subset_df, aes(x = date, y = Death.Rate, fill = name)) +
 # boxplot of death rate for subset communities
 ggplot(subset_df, aes(x = name, y = Death.Rate)) +
   geom_boxplot(fill = "lightblue", color = "black") +
-  labs(title = "Distribution of Death Rate across select LA Communities",
+  labs(title = "Distribution of death rate across select LA communities",
        x = "Community", y = "Deaths per 100k people") +
   theme_bw()
 
-# line plot of death rate for subset communities
+# line plot of cumulative death rate for subset communities
 ggplot(subset_df, aes(x = date, y = Death.Rate, color = name)) +
   geom_line() +
   facet_wrap(~ name, scales = "free_y") +
-  labs(title = "Death Rate across select LA Communities over time", 
+  labs(title = "Cumulative death rate across select LA communities over time", 
        x = "Date", 
        y = "Deaths per 100k people") +
+  theme_bw()
+
+# line plot of daily death rate for subset communities
+ggplot(subset_df, aes(x = date, y = daily_death_rate, color = name)) +
+  geom_line() +
+  facet_wrap(~ name, scales = "free_y") +
+  labs(title = "Daily death rate across select LA communities over time", 
+       x = "Date", 
+       y = "Daily death rate") +
+  theme_bw()
+
+# line plot of daily death incidence for subset communities
+ggplot(subset_df, aes(x = date, y = incidence, color = name)) +
+  geom_line() +
+  facet_wrap(~ name, scales = "free_y") +
+  labs(title = "Daily death incidence across select LA communities over time", 
+       x = "Date", 
+       y = "Daily death incidence") +
   theme_bw()
 ```
 
@@ -363,23 +383,23 @@ ggplot(subset_df, aes(x = date, y = Death.Rate, color = name)) +
 # line plot of daily deaths for ALL communities
 ggplot(overall_trend, aes(x = date, y = daily_deaths)) +
   geom_line(color = "blue") +
-  labs(title = "Overall Daily COVID-19 Deaths for all LA communities", 
-       x = "Date", y = "Number of Deaths") +
+  labs(title = "Overall daily deaths for all LA communities", 
+       x = "Date", y = "Number of deaths") +
   theme_bw()
 
 # line plot of daily deaths for subset communities
 ggplot(subset_overall_trend, aes(x = date, y = daily_deaths)) +
   geom_line(color = "blue") +
-  labs(title = "Overall Daily COVID-19 Deaths across select LA Communities", 
-       x = "Date", y = "Number of Deaths") +
+  labs(title = "Overall daily deaths across select LA communities", 
+       x = "Date", y = "Number of deaths") +
   theme_bw()
 
 # faceted line plot of daily deaths for each subset community
 ggplot(subset_community_trend, aes(x = date, y = daily_deaths, color = name)) +
   geom_line() +
   facet_wrap(~ name, scales = "free_y") +
-  labs(title = "Daily COVID-19 Deaths across select LA Communities over time", 
-       x = "Date", y = "Number of Deaths") +
+  labs(title = "Cumulative daily deaths across select LA communities over time", 
+       x = "Date", y = "Number of deaths") +
   theme_bw()
 ```
 
@@ -441,8 +461,8 @@ death_df$death_per_100k[(death_df$death_per_100k == 0)] <- 0.5
 death_rate_hist_org <- ggplot(death_df, aes(x = death_per_100k)) +
   geom_histogram(binwidth = diff(range(death_df$death_per_100k)) / 100, 
                  fill = "lightblue", color = "black") +
-  labs(title = "Histogram of Death Rate", 
-       x = "Death Rate (deaths/100k)", 
+  labs(title = "Histogram of death rate", 
+       x = "Death rate (deaths/100k)", 
        y = "Count") +
   theme_bw()
 
@@ -452,8 +472,8 @@ death_df$death_per_100k_cubic <- (death_df$death_per_100k)^(1/3)
 death_rate_hist_cubic <- ggplot(death_df, aes(x = death_per_100k_cubic)) +
   geom_histogram(binwidth = diff(range(death_df$death_per_100k_cubic)) / 100, 
                  fill = "lightblue", color = "black") +
-  labs(title = "Histogram of Death Rate (cubic root transform)", 
-       x = "Death Rate (deaths/100k)", 
+  labs(title = "Histogram of death rate (cubic root transform)", 
+       x = "Death rate (deaths/100k)", 
        y = "Count") +
   theme_bw()
 
@@ -461,8 +481,8 @@ death_rate_hist_cubic <- ggplot(death_df, aes(x = death_per_100k_cubic)) +
 total_death_hist_org <- ggplot(death_df, aes(x = total_deaths)) +
   geom_histogram(binwidth = diff(range(death_df$total_deaths)) / 100, 
                  fill = "lightblue", color = "black") +
-  labs(title = "Histogram of Total Deaths", 
-       x = "Total Deaths", 
+  labs(title = "Histogram of total deaths", 
+       x = "Total deaths", 
        y = "Count") +
   theme_bw()
 
@@ -472,8 +492,8 @@ death_df$total_deaths_cubic <- (death_df$total_deaths)^(1/3)
 total_death_hist_cubic <- ggplot(death_df, aes(x = total_deaths_cubic)) +
   geom_histogram(binwidth = diff(range(death_df$total_deaths_cubic)) / 100, 
                  fill = "lightblue", color = "black") +
-  labs(title = "Histogram of Total Deaths (cubic root transform)", 
-       x = "Total Deaths", 
+  labs(title = "Histogram of total deaths (cubic root transform)", 
+       x = "Total deaths", 
        y = "Count") +
   theme_bw()
 
@@ -490,12 +510,30 @@ death_df <- death_df %>%
 death_df$geometry <- st_make_valid(death_df$geometry)
 ```
 
+```{r}
+# choropleth map of death rate, no distortion
+tm_shape(death_df) +
+  tm_polygons("death_per_100k_cubic", 
+              title = "Death rate (cubic)",
+              style = "quantile",    # use quantiles
+              n = 10                # deciles = 10 bins
+              ) +
+  tm_layout(frame = FALSE, legend.position = c("left", "bottom"), legend.frame = FALSE)
+```
+
+
 ```{r, fig.width = 8}
 # death_per_100k cubic transform
+
+# choropleth + cartogram
 avg_deaths_cont_cubic <- cartogram_cont(death_df, "death_per_100k_cubic", itermax = 5)
 tm_shape(avg_deaths_cont_cubic) +
-  tm_polygons("death_per_100k_cubic", title = "death rate (cubic)") +
-  tm_layout(frame = FALSE, legend.position = c("left", "bottom"))
+  tm_polygons("death_per_100k_cubic", 
+              title = "Death rate (cubic)",
+              style = "quantile",    # use quantiles
+              n = 10                # deciles = 10 bins
+              ) +
+  tm_layout(frame = FALSE, legend.position = c("left", "bottom"), legend.frame = FALSE)
 ```
 
 ```{r}
@@ -509,14 +547,29 @@ death_df %>%
 # pop > 5000: Little Armenia, Unincorporated West Carson, Pico-Union
 ```
 
-```{r, fig.width = 8}
+```{r}
 # total_deaths cubic transform
 total_deaths_cont_cubic <- cartogram_cont(death_df, "total_deaths_cubic", itermax = 5)
 
+# just choropleth map, no distortion
+tm_shape(death_df) +
+  tm_polygons("total_deaths_cubic", 
+              title = "Total deaths (cubic)",
+              style = "quantile",    # use quantiles
+              n = 10                # deciles = 10 bins
+              ) +
+  tm_layout(frame = FALSE, legend.position = c("left", "bottom"), legend.frame = FALSE)
+```
+
+```{r, fig.width = 8}
 # plot
 tm_shape(total_deaths_cont_cubic) +
-  tm_polygons("total_deaths_cubic", title = "total deaths (cubic)") +
-  tm_layout(frame = FALSE, legend.position = c("left", "bottom"))
+  tm_polygons("total_deaths_cubic", 
+              title = "Total deaths (cubic)",
+              style = "quantile",    # use quantiles
+              n = 10                # deciles = 10 bins
+              ) +
+  tm_layout(frame = FALSE, legend.position = c("left", "bottom"), legend.frame = FALSE)
 ```
 
 ```{r}
@@ -534,12 +587,27 @@ death_df %>%
 # cubic root transform of population
 death_df$population_cubic <- (death_df$population)^(1/3)
 
+# just choropleth map of population, no distortion
+tm_shape(death_df) +
+  tm_polygons("population_cubic", 
+              title = "Population (cubic)",
+              style = "quantile",    # use quantiles
+              n = 10                # deciles = 10 bins
+              ) +
+  tm_layout(frame = FALSE, legend.position = c("left", "bottom"), legend.frame = FALSE)
+```
+
+```{r}
 # cartogram distorted by population, color by death rate
 pop_cont_cubic <- cartogram_cont(death_df, "population_cubic", itermax = 5)
 
 tm_shape(pop_cont_cubic) +
-  tm_polygons("death_per_100k_cubic", title = "population, death rate (cubic)") +
-  tm_layout(frame = FALSE, legend.position = c("left", "bottom"))
+  tm_polygons("death_per_100k_cubic", 
+              title = "Population (color), death rate (distortion) (cubic)",
+              style = "quantile",    # use quantiles
+              n = 10                # deciles = 10 bins
+              ) +
+  tm_layout(frame = FALSE, legend.position = c("left", "bottom"), legend.frame = FALSE)
 ```
 ```{r}
 # get highest death_per_100k_cubic, population (with cubic transform) communities
@@ -557,8 +625,12 @@ death_df %>%
 pop_cont_cubic <- cartogram_cont(death_df, "population_cubic", itermax = 5)
 
 tm_shape(pop_cont_cubic) +
-  tm_polygons("total_deaths_cubic", title = "population, total deaths (cubic)") +
-  tm_layout(frame = FALSE, legend.position = c("left", "bottom"))
+  tm_polygons("total_deaths_cubic", 
+              title = "Population (color), total deaths (distortion) (cubic)",
+              style = "quantile",    # use quantiles
+              n = 10                # deciles = 10 bins
+              ) +
+  tm_layout(frame = FALSE, legend.position = c("left", "bottom"), legend.frame = FALSE)
 ```
 
 ```{r}
@@ -610,8 +682,8 @@ age_data <- data.frame(
 age_dist <- ggplot(age_data, aes(x = Age_Group, y = Population, fill = Community)) +
   geom_bar(stat = "identity", position = "dodge") + 
   facet_wrap(~Community, scales = "free_y") + 
-  labs(title = "Age Distribution by Community",
-       x = "Age Group",
+  labs(title = "Age distribution by community",
+       x = "Age group",
        y = "Population") +
   theme_bw() + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
