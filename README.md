@@ -1,7 +1,7 @@
 # UCLA-MASDS-Thesis
 Corresponding code for UCLA MASDS Thesis - Estimating COVID-19 Deaths in Los Angeles Communities through a Hawkes Process Model
 
-The code in the Rmd files follow/have been adapted from the following sources:
+The code in the Rmd files reference/follow the following sources:
 1. Tutorial in the R package stelfi documentation
 https://cmjt.github.io/stelfi/univariate-hawkes.html
 2. "Estimating Covid-19 Transmission Time Using Hawkes Point Processes" by Frederic Schoenberg
